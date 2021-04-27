@@ -1,0 +1,27 @@
+{
+	"folders": [
+		{
+			"path": "."
+		}
+	],
+	"settings": {
+		"extensions.ignoreRecommendations": true,
+		"cortex-debug.openocdPath": "${command:particle.getDebuggerOpenocdPath}",
+		"files.associations": {
+			"*.ino": "cpp",
+			"*.tcc": "cpp",
+			"algorithm": "cpp",
+			"unordered_map": "cpp",
+			"fstream": "cpp",
+			"istream": "cpp",
+			"ostream": "cpp",
+			"sstream": "cpp",
+			"complex": "cpp",
+			"iomanip": "cpp",
+			"exception": "cpp",
+			"iosfwd": "cpp",
+			"new": "cpp",
+			"streambuf": "cpp"
+		}
+	}
+}

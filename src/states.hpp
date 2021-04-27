@@ -1,0 +1,17 @@
+#ifndef __STATES_HPP__
+#define __STATES_HPP__
+
+typedef enum STATES_
+{
+    STATE_NULL,
+    STATE_DEEP_SLEEP,
+    STATE_SESSION_INIT,
+    STATE_DEPLOYED,
+    STATE_UPLOAD,
+    STATE_CLI,
+    STATE_MFG_TEST,
+    STATE_TMP_CAL,
+    STATE_CHARGE
+}STATES_e;
+
+#endif
