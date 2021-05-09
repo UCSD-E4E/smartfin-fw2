@@ -16,8 +16,7 @@ void DataUpload::init(void)
     this->initSuccess = 0;
     Particle.connect();
     this->initSuccess = 1;
-    pSystemDesc->pWaterCheck->start();
-    pSystemDesc->pRecorder->resetUploadNumber();
+    pSystemDesc->pRecorder->resetPacketNumber();
 }
 
 STATES_e DataUpload::run(void)
@@ -96,9 +95,8 @@ STATES_e DataUpload::run(void)
         }
 
         // have something to publish, grab and encode.
-        SF_OSAL_printf("Pretending to upload\n");
         memset(dataEncodeBuffer, 0, DATA_UPLOAD_MAX_BLOCK_LEN);
-        nBytesToEncode = pSystemDesc->pRecorder->getLastBlock(dataEncodeBuffer, DATA_UPLOAD_MAX_BLOCK_LEN, publishName, DU_PUBLISH_ID_NAME_LEN);
+        nBytesToEncode = pSystemDesc->pRecorder->getLastPacket(dataEncodeBuffer, DATA_UPLOAD_MAX_BLOCK_LEN, publishName, DU_PUBLISH_ID_NAME_LEN);
         if(-1 == nBytesToEncode)
         {
             SF_OSAL_printf("Failed to retrive data\n");
@@ -130,18 +128,17 @@ STATES_e DataUpload::run(void)
         lastSendTime = millis();
 
 
-        if(!pSystemDesc->pRecorder->trimLastBlock(nBytesToEncode))
+        if(!pSystemDesc->pRecorder->popLastPacket(nBytesToEncode))
         {
             SF_OSAL_printf("Failed to trim!");
             return STATE_CLI;
         }
-        pSystemDesc->pRecorder->incrementUploadNumber();
+        pSystemDesc->pRecorder->incrementPacketNumber();
     }
 }
 
 void DataUpload::exit(void)
 {
-    pSystemDesc->pWaterCheck->stop();
     Cellular.off();
 }
 

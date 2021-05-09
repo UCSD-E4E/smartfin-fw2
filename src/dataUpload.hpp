@@ -55,6 +55,5 @@ class DataUpload : public Task{
     int initSuccess;
     system_tick_t lastConnectTime;
     STATES_e exitState(void);
-    int uploadNumber;
 };
 #endif

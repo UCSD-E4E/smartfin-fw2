@@ -44,9 +44,6 @@ static  CLI_menu_t const* CLI_findCommand(char const* const cmd, CLI_menu_t cons
 static int CLI_executeDebugMenu(const int cmd, CLI_debugMenu_t* menu);
 static void CLI_displayDebugMenu(CLI_debugMenu_t* menu);
 
-static int CLI_displaySystemDesc(void);
-static int CLI_testSleepLoadBoot(void);
-static int CLI_setLEDs(void);
 
 const CLI_menu_t CLI_menu[12] =
     {
@@ -63,11 +60,17 @@ const CLI_menu_t CLI_menu[12] =
         {'*', &CLI_doDebugMode},
         {'\0', NULL}};
 
+static int CLI_displaySystemDesc(void);
+static int CLI_testSleepLoadBoot(void);
+static int CLI_setLEDs(void);
+static int CLI_monitorSensors(void);
+
 const CLI_debugMenu_t CLI_debugMenu[] =
 {
     {"Display System Desc", CLI_displaySystemDesc},
     {"Load Boot Behavior", CLI_testSleepLoadBoot},
     {"Set LED State", CLI_setLEDs},
+    {"Monitor Sensors", CLI_monitorSensors},
     {NULL, NULL}
 };
 
@@ -408,4 +411,65 @@ static int CLI_setLEDs(void)
         default:
         return 0;
     }
+}
+
+static int CLI_monitorSensors(void)
+{
+    int32_t intPinState = 0;
+    uint16_t accelRawData[3];
+    uint16_t gyroRawData[3];
+    uint16_t magRawData[3];
+    float accelData[3];
+    float gyroData[3];
+    int16_t magData[3];
+    float temp;
+    uint8_t waterDetect;
+  
+    if(!pSystemDesc->pIMU->open())
+    {
+        SF_OSAL_printf("IMU Fail\n");
+    }
+    if(!pSystemDesc->pCompass->open())
+    {
+        SF_OSAL_printf("Mag Fail\n");
+    }
+    if(!pSystemDesc->pTempSensor->init())
+    {
+        SF_OSAL_printf("Temp Fail\n");
+    }
+    SF_OSAL_printf("%6s\t%8s\t%8s\t%8s\t%8s\t%8s\t%8s\t%8s\t%8s\t%8s\t%8s\t%8s\n", "time", "xAcc", "yAcc", "zAcc", "xAng", "yAng", "zAng", "xMag", "yMag", "zMag", "temp", "water");
+    // SF_OSAL_printf("%6s\t%8s\n", "time", "temp");
+    while(!kbhit())
+    {
+        if(digitalRead(MPU_INT_PIN) == 0)
+        {
+            pSystemDesc->pIMU->get_accelerometer(accelData, accelData + 1, accelData + 2);
+            pSystemDesc->pIMU->get_accel_raw_data((uint8_t*) accelRawData);
+
+            pSystemDesc->pIMU->get_gyroscope(gyroData, gyroData + 1, gyroData + 2);
+            pSystemDesc->pIMU->get_gyro_raw_data((uint8_t*) gyroRawData);
+            
+            pSystemDesc->pCompass->read(magData, magData + 1, magData + 2);
+            pSystemDesc->pCompass->read((uint8_t*) magRawData);
+
+            temp = pSystemDesc->pTempSensor->getTemp();
+
+            waterDetect = pSystemDesc->pWaterSensor->getCurrentReading();
+            // SF_OSAL_printf("Time between: %08.2f\r", elapsed / count);
+            SF_OSAL_printf("%6d\t%8.4f\t%8.4f\t%8.4f\t%8.4f\t%8.4f\t%8.4f\t%8d\t%8d\t%8d\t%8.4f\t%8d\n", millis(), 
+                accelData[0], accelData[1], accelData[2],
+                gyroData[0], gyroData[1], gyroData[2],
+                magData[0], magData[1], magData[2],
+                temp, waterDetect);
+        }
+    }
+    SF_OSAL_printf("\n");
+    while(kbhit())
+    {
+        getch();
+    }
+    pSystemDesc->pTempSensor->stop();
+    pSystemDesc->pCompass->close();
+    pSystemDesc->pIMU->close();
+    return 1;
 }

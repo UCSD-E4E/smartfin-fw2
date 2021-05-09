@@ -8,6 +8,10 @@
 #include "led.hpp"
 #include "recorder.hpp"
 #include "TinyGPSMod.h"
+#include "ICM20648.h"
+#include "tmpSensor.h"
+#include "AK09916.h"
+
 
 #define SYS_CHARGER_MIN_CHARGING_MS 5000
 #define SYS_CHARGER_MIN_CHARGED_MS 30000
@@ -36,6 +40,9 @@ typedef struct SystemDesc_
     LEDSystemTheme* systemTheme;
     Recorder* pRecorder;
     TinyGPSPlus* pGPS;
+    ICM20648* pIMU;
+    tmpSensor* pTempSensor;
+    AK09916* pCompass;
     const SystemFlags_t* flags;
 }SystemDesc_t;
 

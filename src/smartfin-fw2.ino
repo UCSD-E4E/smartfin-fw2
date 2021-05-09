@@ -21,7 +21,7 @@
 #include "chargeTask.hpp"
 #include "ride.hpp"
 
-// #define SF_DEBUG
+#define SF_DEBUG
 
 typedef struct StateMachine_
 {
@@ -34,6 +34,7 @@ static DataUpload uploadTask;
 static SleepTask sleepTask;
 static ChargeTask chargeTask;
 static RideInitTask rideInitTask;
+static RideTask rideTask;
 
 static StateMachine_t stateMachine[] = 
 {
@@ -42,6 +43,7 @@ static StateMachine_t stateMachine[] =
   {STATE_DEEP_SLEEP, &sleepTask},
   {STATE_CHARGE, &chargeTask},
   {STATE_SESSION_INIT, &rideInitTask},
+  {STATE_DEPLOYED, &rideTask},
   {STATE_NULL, NULL}
 };
 

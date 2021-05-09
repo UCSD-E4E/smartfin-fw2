@@ -3,6 +3,7 @@
 #include <cstring>
 #include "Particle.h"
 #include "product.hpp"
+#include "max31725.h"
 
 static SpiFlashMacronix DP_spiFlash(SPI1, D5);
 SpiffsParticle DP_fs(DP_spiFlash);
@@ -16,6 +17,12 @@ static SFLed waterLED(LED_PIN,  SFLed::SFLED_STATE_OFF);
 Recorder dataRecorder;
 
 TinyGPSPlus SF_gps;
+ICM20648 SF_imu(SF_ICM20648_ADDR);
+
+I2C i2cBus;
+MAX31725 max31725(i2cBus, MAX31725_I2C_SLAVE_ADR_00);
+tmpSensor tempSensor(max31725);
+AK09916 SF_mag(SF_AK09916_ADDR);
 
 static void SYS_chargerTask(void);
 static void SYS_waterTask(void);
@@ -36,7 +43,7 @@ static int SYS_initNVRAM(void);
 static int SYS_initWaterSensor(void);
 static int SYS_initLEDs(void);
 static int SYS_initTasks(void);
-static int SYS_initGPIO(void);
+static int SYS_initSensors(void);
 
 int SYS_initSys(void)
 {
@@ -53,9 +60,7 @@ int SYS_initSys(void)
     SYS_initWaterSensor();
     SYS_initLEDs();
     SYS_initTasks();
-    SYS_initGPIO();
-
-    systemDesc.pGPS = &SF_gps;
+    SYS_initSensors();
     return 1;
 }
 
@@ -132,6 +137,7 @@ static int SYS_initTasks(void)
     systemDesc.pChargerCheck = &chargerTimer;
     systemDesc.pWaterCheck = &waterTimer;
     batteryMonitorTimer.start();
+    waterTimer.start();
     return 1;
 }
 
@@ -193,9 +199,14 @@ static void SYS_waterTask(void)
     }
 }
 
-static int SYS_initGPIO(void)
+static int SYS_initSensors(void)
 {
     pinMode(WKP_PIN, INPUT_PULLDOWN);
+    systemDesc.pGPS = &SF_gps;
+
+    systemDesc.pIMU = &SF_imu;
+    systemDesc.pTempSensor = &tempSensor;
+    systemDesc.pCompass = &SF_mag;
     return 1;
 }
 

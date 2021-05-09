@@ -10,8 +10,19 @@ Deployment& Deployment::getInstance(void)
     return DP_instance;
 }
 
+/**
+ * @brief Opens a new deployment with the given name in the specified state
+ * 
+ * @param name Session Name
+ * @param state Read/Write State
+ * @return int  1 if successful, otherwise 0
+ */
 int Deployment::open(const char* const name, Deployment::State_e state)
 {
+    if(this->currentFile.isValid())
+    {
+        pSystemDesc->pFileSystem->close(this->currentFile);
+    }
     switch(state)
     {
         case Deployment::READ:
@@ -65,6 +76,11 @@ int Deployment::read(void* pData, size_t nBytes)
     return bytesRead;
 }
 
+/**
+ * @brief Closes the session.
+ * 
+ * @return int 1 if successful, otherwise 0
+ */
 int Deployment::close(void)
 {
     if(!this->currentFile.isValid())

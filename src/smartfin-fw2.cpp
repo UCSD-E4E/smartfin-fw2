@@ -2,7 +2,7 @@
 //       THIS IS A GENERATED FILE - DO NOT EDIT       //
 /******************************************************/
 
-#line 1 "/home/ntlhui/workspace/smartfin-fw2/smartfin-fw2/src/smartfin-fw2.ino"
+#line 1 "/home/ntlhui/workspace/smartfin-fw2/src/smartfin-fw2.ino"
 /*
  * Project smartfin-fw2
  * Description:
@@ -26,11 +26,11 @@
 #include "chargeTask.hpp"
 #include "ride.hpp"
 
-// #define SF_DEBUG
-
 void setup();
 void loop();
-#line 26 "/home/ntlhui/workspace/smartfin-fw2/smartfin-fw2/src/smartfin-fw2.ino"
+#line 24 "/home/ntlhui/workspace/smartfin-fw2/src/smartfin-fw2.ino"
+#define SF_DEBUG
+
 typedef struct StateMachine_
 {
   STATES_e state;
@@ -42,6 +42,7 @@ static DataUpload uploadTask;
 static SleepTask sleepTask;
 static ChargeTask chargeTask;
 static RideInitTask rideInitTask;
+static RideTask rideTask;
 
 static StateMachine_t stateMachine[] = 
 {
@@ -50,6 +51,7 @@ static StateMachine_t stateMachine[] =
   {STATE_DEEP_SLEEP, &sleepTask},
   {STATE_CHARGE, &chargeTask},
   {STATE_SESSION_INIT, &rideInitTask},
+  {STATE_DEPLOYED, &rideTask},
   {STATE_NULL, NULL}
 };
 

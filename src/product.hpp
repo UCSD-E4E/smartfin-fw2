@@ -1,8 +1,6 @@
 #ifndef __PRODUCT_HPP__
 #define __PRODUCT_HPP__
 
-#include "Particle.h"
-
 /**
  * USB Power Detection Pin
  */
@@ -37,6 +35,12 @@
  * 
  */
 #define GPS_PWR_EN_PIN        B2
+
+/**
+ * @brief Accelerometer/Gyroscope Interrupt Pin
+ * 
+ */
+#define MPU_INT_PIN             B3
 
 
 #define SERIAL_DEBUG_BAUD_RATE 115200
@@ -125,5 +129,38 @@
  */
 #define SURF_SESSION_GET_INTO_WATER_TIMEOUT_MS 300000
 
+/**
+ * @brief Particle IO device
+ * 
+ */
+#define PARTICLE_IO 1
+/**
+ * @brief hardware revision
+ * 
+ */
+#define HARDWARE_REV 2
+/**
+ * @brief enable ICM20648 motion sensor support
+ * 
+ */
+#define ICM20648_ENABLED (HARDWARE_REV==2)
+
+/**
+ * @brief ICM20648 Address
+ * 
+ */
+#define SF_ICM20648_ADDR    (0x68 << 1)
+
+/**
+ * @brief AK09916 Address
+ * 
+ */
+#define SF_AK09916_ADDR (0x0C << 1)
+
+/**
+ * @brief Sensor data size?
+ * TODO get rid of this!
+ */
+#define SENSOR_DATA_SZ (6)
 
 #endif
