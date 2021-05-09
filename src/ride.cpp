@@ -191,9 +191,15 @@ STATES_e RideTask::run(void)
     size_t nextEventTime;
     while(1)
     {
+        while(GPS_kbhit())
+        {
+            pSystemDesc->pGPS->encode(GPS_getch());
+        }
+        
         getNextEvent(&pNextEvent, &nextEventTime);
         while(millis() < nextEventTime)
         {
+            continue;
         }
         pNextEvent->func(pNextEvent);
         pNextEvent->lastExecuteTime = millis();
@@ -219,7 +225,7 @@ void RideTask::exit(void)
     pSystemDesc->pCompass->close();
     pSystemDesc->pIMU->close();
     pSystemDesc->pGPS->gpsModuleStop();
-    
+
 }
 
 static void initializeSchedule(system_tick_t startTime)

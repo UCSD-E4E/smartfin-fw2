@@ -4,6 +4,7 @@
 #include <SpiffsParticleRK.h>
 #include <cstdio>
 #include <cstdlib>
+#include <cmath>
 
 #include "conio.hpp"
 #include "product.hpp"
@@ -64,6 +65,7 @@ static int CLI_displaySystemDesc(void);
 static int CLI_testSleepLoadBoot(void);
 static int CLI_setLEDs(void);
 static int CLI_monitorSensors(void);
+static int CLI_gpsTerminal(void);
 
 const CLI_debugMenu_t CLI_debugMenu[] =
 {
@@ -71,6 +73,7 @@ const CLI_debugMenu_t CLI_debugMenu[] =
     {"Load Boot Behavior", CLI_testSleepLoadBoot},
     {"Set LED State", CLI_setLEDs},
     {"Monitor Sensors", CLI_monitorSensors},
+    {"GPS Terminal", CLI_gpsTerminal},
     {NULL, NULL}
 };
 
@@ -424,6 +427,7 @@ static int CLI_monitorSensors(void)
     int16_t magData[3];
     float temp;
     uint8_t waterDetect;
+    double location[2];
   
     if(!pSystemDesc->pIMU->open())
     {
@@ -437,10 +441,24 @@ static int CLI_monitorSensors(void)
     {
         SF_OSAL_printf("Temp Fail\n");
     }
-    SF_OSAL_printf("%6s\t%8s\t%8s\t%8s\t%8s\t%8s\t%8s\t%8s\t%8s\t%8s\t%8s\t%8s\n", "time", "xAcc", "yAcc", "zAcc", "xAng", "yAng", "zAng", "xMag", "yMag", "zMag", "temp", "water");
+    
+    digitalWrite(GPS_PWR_EN_PIN, HIGH);
+    delay(500);
+
+    pSystemDesc->pGPS->gpsModuleInit();
+    if(!pSystemDesc->pGPS->isEnabled())
+    {
+        SF_OSAL_printf("GPS Fail\n");
+    }
+
+    SF_OSAL_printf("%6s\t%8s\t%8s\t%8s\t%8s\t%8s\t%8s\t%8s\t%8s\t%8s\t%8s\t%8s\t%10s\t%10s\n", "time", "xAcc", "yAcc", "zAcc", "xAng", "yAng", "zAng", "xMag", "yMag", "zMag", "temp", "water", "lat", "lon");
     // SF_OSAL_printf("%6s\t%8s\n", "time", "temp");
     while(!kbhit())
     {
+        while(GPS_kbhit())
+        {
+            pSystemDesc->pGPS->encode(GPS_getch());
+        }
         if(digitalRead(MPU_INT_PIN) == 0)
         {
             pSystemDesc->pIMU->get_accelerometer(accelData, accelData + 1, accelData + 2);
@@ -455,12 +473,21 @@ static int CLI_monitorSensors(void)
             temp = pSystemDesc->pTempSensor->getTemp();
 
             waterDetect = pSystemDesc->pWaterSensor->getCurrentReading();
+
+            location[0] = pSystemDesc->pGPS->location.lat();
+            location[1] = pSystemDesc->pGPS->location.lng();
+            if(!pSystemDesc->pGPS->location.isValid())
+            {
+                location[0] = NAN;
+                location[1] = NAN;
+            }
+
             // SF_OSAL_printf("Time between: %08.2f\r", elapsed / count);
-            SF_OSAL_printf("%6d\t%8.4f\t%8.4f\t%8.4f\t%8.4f\t%8.4f\t%8.4f\t%8d\t%8d\t%8d\t%8.4f\t%8d\n", millis(), 
+            SF_OSAL_printf("%6d\t%8.4f\t%8.4f\t%8.4f\t%8.4f\t%8.4f\t%8.4f\t%8d\t%8d\t%8d\t%8.4f\t%8d\t%10.6f\t%10.6f\n", millis(), 
                 accelData[0], accelData[1], accelData[2],
                 gyroData[0], gyroData[1], gyroData[2],
                 magData[0], magData[1], magData[2],
-                temp, waterDetect);
+                temp, waterDetect, location[0], location[1]);
         }
     }
     SF_OSAL_printf("\n");
@@ -471,5 +498,37 @@ static int CLI_monitorSensors(void)
     pSystemDesc->pTempSensor->stop();
     pSystemDesc->pCompass->close();
     pSystemDesc->pIMU->close();
+    pSystemDesc->pGPS->gpsModuleStop();
+    digitalWrite(GPS_PWR_EN_PIN, LOW);
+
+    return 1;
+}
+
+static int CLI_gpsTerminal(void)
+{
+    bool run = true;
+    char user;
+    digitalWrite(GPS_PWR_EN_PIN, LOW);
+
+    while(run)
+    {
+        if(GPS_kbhit())
+        {
+            putch(GPS_getch());
+        }
+        if(kbhit())
+        {
+            user = getch();
+            if(user == 27)
+            {
+                run = false;
+            }
+            else
+            {
+                GPS_putch(user);
+            }
+        }
+    }
+    digitalWrite(GPS_PWR_EN_PIN, HIGH);
     return 1;
 }
