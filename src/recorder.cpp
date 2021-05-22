@@ -89,6 +89,8 @@ int Recorder::getLastPacket(void* pBuffer, size_t bufferLen, char* pName, size_t
     {
         #ifdef REC_DEBUG
         SF_OSAL_printf("REC::GLP open %s success\n", (char*) dirEntry.name);
+        SF_OSAL_printf("Length: %d\n", session.getLength());
+        
         #endif
     }
 
@@ -307,17 +309,28 @@ int Recorder::openSession(const char* const sessionName)
 int Recorder::closeSession(void)
 {
     char fileName[REC_SESSION_NAME_MAX_LEN + 1];
+    spiffs_stat stat;
+
     if(NULL == this->pSession)
     {
         SF_OSAL_printf("REC::CLOSE Already closed\n");
         return 1;
     }
 
+    // flush buffer
+    for(; this->dataIdx < REC_MAX_PACKET_SIZE; this->dataIdx++)
+    {
+        this->dataBuffer[this->dataIdx] = 0;
+    }
+    this->pSession->write(this->dataBuffer, REC_MAX_PACKET_SIZE);
+
     this->pSession->close();
     this->getSessionName(fileName);
     pSystemDesc->pFileSystem->rename("__temp", fileName);
 #ifdef REC_DEBUG
     SF_OSAL_printf("Saving as %s\n", fileName);
+    pSystemDesc->pFileSystem->stat(fileName, &stat);
+    SF_OSAL_printf("Saved %u bytes\n", stat.size);
 #endif
     memset(this->dataBuffer, 0, REC_MEMORY_BUFFER_SIZE);
     this->dataIdx = 0;
@@ -352,4 +365,32 @@ void Recorder::getSessionName(char* pFileName)
     }
     strcpy(pFileName, tempFileName);
     return;
+}
+
+int Recorder::putBytes(const void* pData, size_t nBytes)
+{
+    if(NULL == this->pSession)
+    {
+        return 0;
+    }
+    if(nBytes > (REC_MAX_PACKET_SIZE - this->dataIdx))
+    {
+        // data will not fit, flush and clear
+        // pad 0
+        for(; this->dataIdx < REC_MAX_PACKET_SIZE; this->dataIdx++)
+        {
+            this->dataBuffer[this->dataIdx] = 0;
+        }
+        SF_OSAL_printf("Flushing\n");
+        this->pSession->write(this->dataBuffer, REC_MAX_PACKET_SIZE);
+
+        memset(this->dataBuffer, 0, REC_MEMORY_BUFFER_SIZE);
+        this->dataIdx = 0;
+    }
+
+    // data guaranteed to fit
+    SF_OSAL_printf("Putting %u bytes\n", nBytes);
+    memcpy(&this->dataBuffer[this->dataIdx], pData, nBytes);
+    this->dataIdx += nBytes;
+    return 1;
 }

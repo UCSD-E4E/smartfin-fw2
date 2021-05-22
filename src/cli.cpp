@@ -66,6 +66,7 @@ static int CLI_testSleepLoadBoot(void);
 static int CLI_setLEDs(void);
 static int CLI_monitorSensors(void);
 static int CLI_gpsTerminal(void);
+static int CLI_testWaterDetect(void);
 
 const CLI_debugMenu_t CLI_debugMenu[] =
 {
@@ -74,6 +75,7 @@ const CLI_debugMenu_t CLI_debugMenu[] =
     {"Set LED State", CLI_setLEDs},
     {"Monitor Sensors", CLI_monitorSensors},
     {"GPS Terminal", CLI_gpsTerminal},
+    {"Test Water Detect", CLI_testWaterDetect},
     {NULL, NULL}
 };
 
@@ -459,36 +461,33 @@ static int CLI_monitorSensors(void)
         {
             pSystemDesc->pGPS->encode(GPS_getch());
         }
-        if(digitalRead(MPU_INT_PIN) == 0)
+        pSystemDesc->pIMU->get_accelerometer(accelData, accelData + 1, accelData + 2);
+        pSystemDesc->pIMU->get_accel_raw_data((uint8_t*) accelRawData);
+
+        pSystemDesc->pIMU->get_gyroscope(gyroData, gyroData + 1, gyroData + 2);
+        pSystemDesc->pIMU->get_gyro_raw_data((uint8_t*) gyroRawData);
+        
+        pSystemDesc->pCompass->read(magData, magData + 1, magData + 2);
+        pSystemDesc->pCompass->read((uint8_t*) magRawData);
+
+        temp = pSystemDesc->pTempSensor->getTemp();
+
+        waterDetect = pSystemDesc->pWaterSensor->getCurrentReading();
+
+        location[0] = pSystemDesc->pGPS->location.lat();
+        location[1] = pSystemDesc->pGPS->location.lng();
+        if(!pSystemDesc->pGPS->location.isValid())
         {
-            pSystemDesc->pIMU->get_accelerometer(accelData, accelData + 1, accelData + 2);
-            pSystemDesc->pIMU->get_accel_raw_data((uint8_t*) accelRawData);
-
-            pSystemDesc->pIMU->get_gyroscope(gyroData, gyroData + 1, gyroData + 2);
-            pSystemDesc->pIMU->get_gyro_raw_data((uint8_t*) gyroRawData);
-            
-            pSystemDesc->pCompass->read(magData, magData + 1, magData + 2);
-            pSystemDesc->pCompass->read((uint8_t*) magRawData);
-
-            temp = pSystemDesc->pTempSensor->getTemp();
-
-            waterDetect = pSystemDesc->pWaterSensor->getCurrentReading();
-
-            location[0] = pSystemDesc->pGPS->location.lat();
-            location[1] = pSystemDesc->pGPS->location.lng();
-            if(!pSystemDesc->pGPS->location.isValid())
-            {
-                location[0] = NAN;
-                location[1] = NAN;
-            }
-
-            // SF_OSAL_printf("Time between: %08.2f\r", elapsed / count);
-            SF_OSAL_printf("%6d\t%8.4f\t%8.4f\t%8.4f\t%8.4f\t%8.4f\t%8.4f\t%8d\t%8d\t%8d\t%8.4f\t%8d\t%10.6f\t%10.6f\n", millis(), 
-                accelData[0], accelData[1], accelData[2],
-                gyroData[0], gyroData[1], gyroData[2],
-                magData[0], magData[1], magData[2],
-                temp, waterDetect, location[0], location[1]);
+            location[0] = NAN;
+            location[1] = NAN;
         }
+
+        // SF_OSAL_printf("Time between: %08.2f\r", elapsed / count);
+        SF_OSAL_printf("%6d\t%8.4f\t%8.4f\t%8.4f\t%8.4f\t%8.4f\t%8.4f\t%8d\t%8d\t%8d\t%8.4f\t%8d\t%10.6f\t%10.6f\n", millis(), 
+            accelData[0], accelData[1], accelData[2],
+            gyroData[0], gyroData[1], gyroData[2],
+            magData[0], magData[1], magData[2],
+            temp, waterDetect, location[0], location[1]);
     }
     SF_OSAL_printf("\n");
     while(kbhit())
@@ -508,7 +507,9 @@ static int CLI_gpsTerminal(void)
 {
     bool run = true;
     char user;
-    digitalWrite(GPS_PWR_EN_PIN, LOW);
+    digitalWrite(GPS_PWR_EN_PIN, HIGH);
+    delay(500);
+    pSystemDesc->pGPS->gpsModuleInit();
 
     while(run)
     {
@@ -529,6 +530,17 @@ static int CLI_gpsTerminal(void)
             }
         }
     }
-    digitalWrite(GPS_PWR_EN_PIN, HIGH);
+    digitalWrite(GPS_PWR_EN_PIN, LOW);
     return 1;
+}
+
+static int CLI_testWaterDetect(void)
+{
+    bool run = true;
+    char user;
+    while(run)
+    {
+        pSystemDesc->pWaterSensor->getCurrentReading();
+
+    }
 }

@@ -28,31 +28,11 @@ class Recorder
 
     int openSession(const char* const depName);
     int closeSession(void);
+    int putBytes(const void* pData, size_t nBytes);
 
     template <typename T> int putData(T& data)
     {
-        if(NULL == this->pSession)
-        {
-            return 0;
-        }
-        if(sizeof(T) > (REC_MAX_PACKET_SIZE - this->dataIdx))
-        {
-            // data will not fit, flush and clear
-            // pad 0
-            for(; this->dataIdx < REC_MAX_PACKET_SIZE; this->dataIdx++)
-            {
-                this->dataBuffer[this->dataIdx] = 0;
-            }
-            this->pSession->write(this->dataBuffer, REC_MAX_PACKET_SIZE);
-
-            memset(this->dataBuffer, 0, REC_MEMORY_BUFFER_SIZE);
-            this->dataIdx = 0;
-        }
-
-        // data guaranteed to fit
-        memcpy(&this->dataBuffer[this->dataIdx], &data, sizeof(T));
-        this->dataIdx += sizeof(T);
-        return 1;
+        return this->putBytes(&data, sizeof(T));
     };
 
     private:

@@ -148,33 +148,33 @@ void mainThread(void* args)
 static void initializeTaskObjects(void)
 {
   currentState = SF_DEFAULT_STATE;
-  // SleepTask::loadBootBehavior();
+  SleepTask::loadBootBehavior();
 
-  // switch(SleepTask::getBootBehavior())
-  // {
-  // default:
-  // case SleepTask::BOOT_BEHAVIOR_NORMAL:
-  //   if(digitalRead(SF_USB_PWR_DETECT_PIN) == HIGH)
-  //   {
-  //     currentState = STATE_UPLOAD;
-  //   }
-  //   else
-  //   {
-  //     currentState = SF_DEFAULT_STATE;
-  //   }
-  //   break;
-  // case SleepTask::BOOT_BEHAVIOR_TMP_CAL_START:
-  // case SleepTask::BOOT_BEHAVIOR_TMP_CAL_CONTINUE:
-  //   currentState = STATE_TMP_CAL;
-  //   break;
-  // case SleepTask::BOOT_BEHAVIOR_TMP_CAL_END:
-  //   currentState = STATE_CLI;
-  //   break;
-  // case SleepTask::BOOT_BEHAVIOR_UPLOAD_REATTEMPT:
-  //   // TODO: Fix to allow waking up into deployment
-  //   currentState = STATE_UPLOAD;
-  //   break;
-  // }
+  switch(SleepTask::getBootBehavior())
+  {
+  default:
+  case SleepTask::BOOT_BEHAVIOR_NORMAL:
+    if(digitalRead(SF_USB_PWR_DETECT_PIN) == HIGH)
+    {
+      currentState = STATE_UPLOAD;
+    }
+    else
+    {
+      currentState = SF_DEFAULT_STATE;
+    }
+    break;
+  case SleepTask::BOOT_BEHAVIOR_TMP_CAL_START:
+  case SleepTask::BOOT_BEHAVIOR_TMP_CAL_CONTINUE:
+    currentState = STATE_TMP_CAL;
+    break;
+  case SleepTask::BOOT_BEHAVIOR_TMP_CAL_END:
+    currentState = STATE_CLI;
+    break;
+  case SleepTask::BOOT_BEHAVIOR_UPLOAD_REATTEMPT:
+    // TODO: Fix to allow waking up into deployment
+    currentState = STATE_UPLOAD;
+    break;
+  }
 }
 
 static StateMachine_t* findState(STATES_e state)

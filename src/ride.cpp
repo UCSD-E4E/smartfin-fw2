@@ -93,6 +93,7 @@ STATES_e RideInitTask::run(void)
     TinyGPSTime gpsTime;
     system_tick_t initTime_ms = millis();
     uint8_t waterStatus;
+    int i;
 
     while(1)
     {
@@ -136,7 +137,7 @@ STATES_e RideInitTask::run(void)
         }
 
         // if water is detected 
-        waterStatus = pSystemDesc->pWaterSensor->getCurrentStatus();
+        waterStatus = pSystemDesc->pWaterSensor->takeReading();
         if(waterStatus == WATER_SENSOR_HIGH_STATE)
         {
             return STATE_DEPLOYED;
@@ -202,15 +203,17 @@ STATES_e RideTask::run(void)
             continue;
         }
         pNextEvent->func(pNextEvent);
-        pNextEvent->lastExecuteTime = millis();
+        pNextEvent->lastExecuteTime = nextEventTime;
 
-        if(pSystemDesc->pWaterSensor->getCurrentStatus() == WATER_SENSOR_LOW_STATE)
+        if(pSystemDesc->pWaterSensor->takeReading() == WATER_SENSOR_LOW_STATE)
         {
+            SF_OSAL_printf("Out of water\n");
             return STATE_UPLOAD;
         }
 
         if(pSystemDesc->flags->batteryLow)
         {
+            SF_OSAL_printf("Low Battery!\n");
             return STATE_DEEP_SLEEP;
         }
     }
@@ -219,6 +222,7 @@ STATES_e RideTask::run(void)
 
 void RideTask::exit(void)
 {
+    SF_OSAL_printf("Closing session\n");
     pSystemDesc->pRecorder->closeSession();
     // Deinitialize sensors
     pSystemDesc->pTempSensor->stop();
@@ -234,6 +238,7 @@ static void initializeSchedule(system_tick_t startTime)
     for(pDeployment = deploymentSchedule; pDeployment->init; pDeployment++)
     {
         pDeployment->startTime = startTime;
+        pDeployment->lastExecuteTime = 0;
         pDeployment->init(pDeployment);
     }
 }
@@ -265,6 +270,7 @@ static void getNextEvent(DeploymentSchedule_t ** pEventPtr, size_t* pNextTime)
                 continue;
             }
         }
+        // SF_OSAL_printf("Event %d nextExecute: %d\n", i, timeToCompare);
 
         if(earliestExecution == 0)
         {
@@ -311,12 +317,18 @@ static void SS_ensemble10Func(DeploymentSchedule_t* pDeployment)
     int16_t magData[3];
     bool hasGPS = false;
     Ensemble10_eventData_t* pData = (Ensemble10_eventData_t*)pDeployment->pData;
-    union 
+
+    #pragma pack(push, 1)
+    struct
     {
-        Ensemble10_data_t ens10;
-        Ensemble11_data_t ens11;
-    } ensData;
-    EnsembleHeader_t header;
+        EnsembleHeader_t header;
+        union{
+            Ensemble10_data_t ens10;
+            Ensemble11_data_t ens11;
+        }data;
+    }ensData;
+    #pragma pack(pop)
+
 
     // Obtain measurements    
     temp = pSystemDesc->pTempSensor->getTemp();
@@ -372,31 +384,30 @@ static void SS_ensemble10Func(DeploymentSchedule_t* pDeployment)
             temp -= 100;
         }
 
-        header.elapsedTime_ds = ((millis() - pDeployment->startTime) / 100) & 0x00FFFFFF;
-        ensData.ens10.rawTemp = N_TO_B_ENDIAN_2(temp / 0.0078125);
-        ensData.ens10.rawAcceleration[0] = N_TO_B_ENDIAN_2(pData->acc[0] / pDeployment->measurementsToAccumulate);
-        ensData.ens10.rawAcceleration[1] = N_TO_B_ENDIAN_2(pData->acc[1] / pDeployment->measurementsToAccumulate);
-        ensData.ens10.rawAcceleration[2] = N_TO_B_ENDIAN_2(pData->acc[2] / pDeployment->measurementsToAccumulate);
-        ensData.ens10.rawAngularVel[0] = N_TO_B_ENDIAN_2(pData->ang[0] / pDeployment->measurementsToAccumulate);
-        ensData.ens10.rawAngularVel[1] = N_TO_B_ENDIAN_2(pData->ang[1] / pDeployment->measurementsToAccumulate);
-        ensData.ens10.rawAngularVel[2] = N_TO_B_ENDIAN_2(pData->ang[2] / pDeployment->measurementsToAccumulate);
-        ensData.ens10.rawMagField[0] = N_TO_B_ENDIAN_2(pData->mag[0] / pDeployment->measurementsToAccumulate);
-        ensData.ens10.rawMagField[1] = N_TO_B_ENDIAN_2(pData->mag[1] / pDeployment->measurementsToAccumulate);
-        ensData.ens10.rawMagField[2] = N_TO_B_ENDIAN_2(pData->mag[2] / pDeployment->measurementsToAccumulate);
-        ensData.ens11.location[0] = N_TO_B_ENDIAN_4(pData->location[0] / pDeployment->measurementsToAccumulate);
-        ensData.ens11.location[1] = N_TO_B_ENDIAN_4(pData->location[1] / pDeployment->measurementsToAccumulate);
+        ensData.header.elapsedTime_ds = ((millis() - pDeployment->startTime) / 100) & 0x00FFFFFF;
+        SF_OSAL_printf("Ensemble timestamp: %d\n", ensData.header.elapsedTime_ds);
+        ensData.data.ens10.rawTemp = N_TO_B_ENDIAN_2(temp / 0.0078125);
+        ensData.data.ens10.rawAcceleration[0] = N_TO_B_ENDIAN_2(pData->acc[0] / pDeployment->measurementsToAccumulate);
+        ensData.data.ens10.rawAcceleration[1] = N_TO_B_ENDIAN_2(pData->acc[1] / pDeployment->measurementsToAccumulate);
+        ensData.data.ens10.rawAcceleration[2] = N_TO_B_ENDIAN_2(pData->acc[2] / pDeployment->measurementsToAccumulate);
+        ensData.data.ens10.rawAngularVel[0] = N_TO_B_ENDIAN_2(pData->ang[0] / pDeployment->measurementsToAccumulate);
+        ensData.data.ens10.rawAngularVel[1] = N_TO_B_ENDIAN_2(pData->ang[1] / pDeployment->measurementsToAccumulate);
+        ensData.data.ens10.rawAngularVel[2] = N_TO_B_ENDIAN_2(pData->ang[2] / pDeployment->measurementsToAccumulate);
+        ensData.data.ens10.rawMagField[0] = N_TO_B_ENDIAN_2(pData->mag[0] / pDeployment->measurementsToAccumulate);
+        ensData.data.ens10.rawMagField[1] = N_TO_B_ENDIAN_2(pData->mag[1] / pDeployment->measurementsToAccumulate);
+        ensData.data.ens10.rawMagField[2] = N_TO_B_ENDIAN_2(pData->mag[2] / pDeployment->measurementsToAccumulate);
+        ensData.data.ens11.location[0] = N_TO_B_ENDIAN_4(pData->location[0] / pDeployment->measurementsToAccumulate);
+        ensData.data.ens11.location[1] = N_TO_B_ENDIAN_4(pData->location[1] / pDeployment->measurementsToAccumulate);
 
         if(pData->hasGPS / pDeployment->measurementsToAccumulate)
         {
-            header.ensembleType = ENS_TEMP_IMU_GPS;
-            pSystemDesc->pRecorder->putData(header);
-            pSystemDesc->pRecorder->putData(ensData.ens11);
+            ensData.header.ensembleType = ENS_TEMP_IMU_GPS;
+            pSystemDesc->pRecorder->putBytes(&ensData, sizeof(EnsembleHeader_t) + sizeof(Ensemble11_data_t));
         }
         else
         {
-            header.ensembleType = ENS_TEMP_IMU;
-            pSystemDesc->pRecorder->putData(header);
-            pSystemDesc->pRecorder->putData(ensData.ens10);
+            ensData.header.ensembleType = ENS_TEMP_IMU;
+            pSystemDesc->pRecorder->putBytes(&ensData, sizeof(EnsembleHeader_t) + sizeof(Ensemble10_data_t));
         }
         
         memset(pData, 0, sizeof(Ensemble10_eventData_t));
@@ -407,8 +418,12 @@ static void SS_ensemble07Func(DeploymentSchedule_t* pDeployment)
 {
     float battVoltage;
     Ensemble07_eventData_t* pData = (Ensemble07_eventData_t*) pDeployment->pData;
-    EnsembleHeader_t header;
-    Ensemble07_data_t ensData;
+    #pragma pack(push, 1)
+    struct{
+        EnsembleHeader_t header;
+        Ensemble07_data_t data;
+    }ensData;
+    #pragma pack(pop)
 
     // obtain measurements
     battVoltage = pSystemDesc->battery->getVCell();
@@ -420,11 +435,10 @@ static void SS_ensemble07Func(DeploymentSchedule_t* pDeployment)
     // Report accumulated measurements
     if(pData->accumulateCount == pDeployment->measurementsToAccumulate)
     {
-        header.elapsedTime_ds = ((millis() - pDeployment->startTime) / 100) & 0x00FFFFFF;
-        header.ensembleType = ENS_BATT;
-        ensData.batteryVoltage = N_TO_B_ENDIAN_2((pData->battVoltage / pData->accumulateCount) * 1000);
+        ensData.header.elapsedTime_ds = ((millis() - pDeployment->startTime) / 100) & 0x00FFFFFF;
+        ensData.header.ensembleType = ENS_BATT;
+        ensData.data.batteryVoltage = N_TO_B_ENDIAN_2((pData->battVoltage / pData->accumulateCount) * 1000);
 
-        pSystemDesc->pRecorder->putData(header);
         pSystemDesc->pRecorder->putData(ensData);
         memset(pData, 0, sizeof(Ensemble07_eventData_t));
     }
@@ -437,8 +451,12 @@ static void SS_ensemble08Func(DeploymentSchedule_t* pDeployment)
     uint8_t water;
 
     Ensemble08_eventData_t* pData = (Ensemble08_eventData_t*) pDeployment->pData;
-    EnsembleHeader_t header;
-    Ensemble08_data_t ensData;
+    #pragma pack(push, 1)
+    struct{
+        EnsembleHeader_t header;
+        Ensemble08_data_t ensData;
+    }ens;
+    #pragma pack(pop)
 
     // obtain measurements
     temp = pSystemDesc->pTempSensor->getTemp();
@@ -459,12 +477,11 @@ static void SS_ensemble08Func(DeploymentSchedule_t* pDeployment)
             temp -= 100;
         }
         
-        header.elapsedTime_ds = ((millis() - pDeployment->startTime) / 100) & 0x00FFFFFF;
-        header.ensembleType = ENS_TEMP_TIME;
-        ensData.rawTemp = N_TO_B_ENDIAN_2(temp / 0.0078125);
+        ens.header.elapsedTime_ds = ((millis() - pDeployment->startTime) / 100) & 0x00FFFFFF;
+        ens.header.ensembleType = ENS_TEMP_TIME;
+        ens.ensData.rawTemp = N_TO_B_ENDIAN_2(temp / 0.0078125);
 
-        pSystemDesc->pRecorder->putData(header);
-        pSystemDesc->pRecorder->putData(ensData);
+        pSystemDesc->pRecorder->putData(ens);
         memset(pData, 0, sizeof(Ensemble08_eventData_t));
     }
 

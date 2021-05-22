@@ -105,6 +105,7 @@ size_t Deployment::getLength(void)
 {
     if(!this->currentFile.isValid())
     {
+        SF_OSAL_printf("DEP::getLength: invalid file!\n");
         return 0;
     }
     return this->currentFile.length();
