@@ -67,6 +67,8 @@ static int CLI_setLEDs(void);
 static int CLI_monitorSensors(void);
 static int CLI_gpsTerminal(void);
 static int CLI_testWaterDetect(void);
+static int CLI_connect(void);
+static int CLI_disconnect(void);
 
 const CLI_debugMenu_t CLI_debugMenu[] =
 {
@@ -76,6 +78,8 @@ const CLI_debugMenu_t CLI_debugMenu[] =
     {"Monitor Sensors", CLI_monitorSensors},
     {"GPS Terminal", CLI_gpsTerminal},
     {"Test Water Detect", CLI_testWaterDetect},
+    {"Cloud connect", CLI_connect},
+    {"Cloud disconnect", CLI_disconnect},
     {NULL, NULL}
 };
 
@@ -543,4 +547,16 @@ static int CLI_testWaterDetect(void)
         pSystemDesc->pWaterSensor->getCurrentReading();
 
     }
+}
+
+static int CLI_connect(void)
+{
+    Particle.connect();
+    waitFor(Particle.connected, 300000);
+    return 1;
+}
+static int CLI_disconnect(void)
+{
+    Particle.disconnect();
+    return 1;
 }
