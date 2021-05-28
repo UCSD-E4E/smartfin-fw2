@@ -21,7 +21,7 @@
 #include "chargeTask.hpp"
 #include "ride.hpp"
 #include "vers.hpp"
-PRODUCT_VERSION(FW_MAJOR_VERSION << 8 | FW_MINOR_VERSION)
+// PRODUCT_VERSION(FW_MAJOR_VERSION << 8 | FW_MINOR_VERSION)
 
 #define SF_DEBUG
 
