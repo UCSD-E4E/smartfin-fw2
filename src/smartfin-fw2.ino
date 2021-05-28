@@ -66,6 +66,7 @@ void setup()
 {
   int i;
   // Put initialization like pinMode and begin functions here.
+
   // Doing Serial initialization here so that we have this available immediately
   Serial.begin(SERIAL_DEBUG_BAUD_RATE);
   // This protects against a boot loop due to idiot programming

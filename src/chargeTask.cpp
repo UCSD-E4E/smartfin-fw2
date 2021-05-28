@@ -34,6 +34,10 @@ STATES_e ChargeTask::run(void)
         {
             return STATE_DEEP_SLEEP;
         }
+        if(pSystemDesc->pWaterSensor->takeReading())
+        {
+            return STATE_SESSION_INIT;
+        }
         os_thread_yield();
     }
 }

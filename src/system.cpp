@@ -103,6 +103,8 @@ static int SYS_initNVRAM(void)
 }
 static int SYS_initWaterSensor(void)
 {
+    pinMode(WATER_DETECT_EN_PIN, OUTPUT);
+    pinMode(WATER_DETECT_PIN, INPUT);
     systemDesc.pWaterSensor = &waterSensor;
     return 1;
 }
@@ -188,7 +190,7 @@ static void SYS_chargerTask(void)
 }
 static void SYS_waterTask(void)
 {
-    systemDesc.pWaterSensor->takeReading();
+    // TODO fix this to be the one polling for wet/dry hysteresis.
     if(systemDesc.pWaterSensor->getCurrentReading())
     {
         systemDesc.pWaterLED->setState(SFLed::SFLED_STATE_ON);
@@ -202,6 +204,9 @@ static void SYS_waterTask(void)
 static int SYS_initSensors(void)
 {
     pinMode(WKP_PIN, INPUT_PULLDOWN);
+    pinMode(GPS_PWR_EN_PIN, OUTPUT);
+    digitalWrite(GPS_PWR_EN_PIN, LOW);
+
     systemDesc.pGPS = &SF_gps;
 
     systemDesc.pIMU = &SF_imu;

@@ -23,6 +23,7 @@ typedef volatile struct SystemFlags_
 {
     bool batteryLow;
     bool hasCharger;
+    bool inWater;
 }SystemFlags_t;
 
 typedef struct SystemDesc_
