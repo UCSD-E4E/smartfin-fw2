@@ -424,7 +424,6 @@ static int CLI_setLEDs(void)
 
 static int CLI_monitorSensors(void)
 {
-    int32_t intPinState = 0;
     uint16_t accelRawData[3];
     uint16_t gyroRawData[3];
     uint16_t magRawData[3];
@@ -545,8 +544,13 @@ static int CLI_testWaterDetect(void)
     while(run)
     {
         pSystemDesc->pWaterSensor->getCurrentReading();
-
+        user = getch();
+        if(user == '\x1b')
+        {
+            run = false;
+        }
     }
+    return 1;
 }
 
 static int CLI_connect(void)
