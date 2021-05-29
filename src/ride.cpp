@@ -1,13 +1,17 @@
 #include "ride.hpp"
 
 #include "Particle.h"
+#include <time.h>
 
 #include "conio.hpp"
+#include "consts.h"
 #include "ensembleTypes.hpp"
 #include "product.hpp"
 #include "system.hpp"
 #include "sleepTask.hpp"
 #include "utils.hpp"
+
+static void RIDE_setFileName(system_tick_t startTime);
 
 static void initializeSchedule(system_tick_t startTime);
 static void getNextEvent(DeploymentSchedule_t** pEventPtr, size_t* pNextTime);
@@ -86,14 +90,42 @@ void RideInitTask::init(void)
 
 }
 
-STATES_e RideInitTask::run(void)
+static void RIDE_setFileName(system_tick_t startTime)
 {
     char depName[REC_SESSION_NAME_MAX_LEN + 1];
     TinyGPSDate gpsDate;
     TinyGPSTime gpsTime;
+    struct tm calendarTime, *sTime;
+    time_t utcTime;
+    
+    gpsDate = pSystemDesc->pGPS->date;
+    gpsTime = pSystemDesc->pGPS->time;
+    if(gpsDate.value() && gpsTime.value())
+    {
+        SF_OSAL_printf("GPS Time Recorded @ %dms\n", millis());
+        
+        calendarTime.tm_year = gpsDate.year();
+        calendarTime.tm_mon = gpsDate.month();
+        calendarTime.tm_mday = gpsDate.day();
+        calendarTime.tm_hour = gpsTime.hour();
+        calendarTime.tm_min = gpsTime.minute();
+        calendarTime.tm_sec = gpsTime.second();
+        utcTime = mktime(&calendarTime);
+        utcTime -= (millis() - gpsTime.age() - startTime) / MSEC_PER_SEC;
+        sTime = localtime(&utcTime);
+
+        snprintf(depName, REC_SESSION_NAME_MAX_LEN, "%02d%02d%02d-%02d%02d%02d",
+            sTime->tm_year, sTime->tm_mon, sTime->tm_mday, sTime->tm_hour, 
+            sTime->tm_min, sTime->tm_sec);
+        pSystemDesc->pRecorder->setSessionName(depName);
+        SF_OSAL_printf("Filename is %s\n", depName);
+    }
+}
+
+STATES_e RideInitTask::run(void)
+{
     system_tick_t initTime_ms = millis();
     uint8_t waterStatus;
-    int i;
 
     while(1)
     {
@@ -103,15 +135,7 @@ STATES_e RideInitTask::run(void)
             pSystemDesc->pGPS->encode(GPS_getch());
         }
 
-        gpsDate = pSystemDesc->pGPS->date;
-        gpsTime = pSystemDesc->pGPS->time;
-        if(gpsDate.value() && gpsTime.value())
-        {
-            SF_OSAL_printf("GPS Time Recorded @ %dms\n", millis());
-            snprintf(depName, REC_SESSION_NAME_MAX_LEN, "%02d%02d%02d-%02d%02d%02d", gpsDate.year(), gpsDate.month(), gpsDate.day(), gpsTime.hour(), gpsTime.minute(), gpsTime.second());
-            pSystemDesc->pRecorder->setSessionName(depName);
-            SF_OSAL_printf("Filename is %s\n", depName);
-        }
+        RIDE_setFileName(millis());
 
         if((pSystemDesc->pGPS->location.age() < GPS_AGE_VALID_MS) && (pSystemDesc->pGPS->location.age() >= 0))
         {
@@ -196,6 +220,8 @@ STATES_e RideTask::run(void)
         {
             pSystemDesc->pGPS->encode(GPS_getch());
         }
+
+        RIDE_setFileName(this->startTime);
         
         getNextEvent(&pNextEvent, &nextEventTime);
         while(millis() < nextEventTime)
