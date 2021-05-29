@@ -129,27 +129,9 @@ int Recorder::getLastPacket(void* pBuffer, size_t bufferLen, char* pName, size_t
     newLength = session.getLength() - bufferLen;
     session.seek(newLength);
     bytesRead = session.read(pBuffer, bufferLen);
-    snprintf((char*) pName, nameLen, "Sfin-%s-%s-%d", pSystemDesc->deviceID, dirEntry.name, this->packetNumber);
+    snprintf((char*) pName, nameLen, "Sfin-%s-%s-%d", pSystemDesc->deviceID, dirEntry.name, newLength / REC_MAX_PACKET_SIZE);
     session.close();
     return bytesRead;
-}
-
-/**
- * @brief Resets the Recorder upload number to 0
- * 
- */
-void Recorder::resetPacketNumber(void)
-{
-    this->packetNumber = 0;
-}
-
-/**
- * @brief Resets the Recorder upload number to 0
- * 
- */
-void Recorder::incrementPacketNumber(void)
-{
-    this->packetNumber++;
 }
 
 /**
@@ -278,9 +260,9 @@ void Recorder::setSessionName(const char* const sessionName)
  */
 int Recorder::openSession(const char* const sessionName)
 {
+    memset(this->currentSessionName, 0, REC_SESSION_NAME_MAX_LEN + 1);
     if(sessionName)
     {
-        memset(this->currentSessionName, 0, REC_SESSION_NAME_MAX_LEN + 1);
         strncpy(this->currentSessionName, sessionName, REC_SESSION_NAME_MAX_LEN);
     }
     this->pSession = &Deployment::getInstance();

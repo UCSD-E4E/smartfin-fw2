@@ -36,7 +36,6 @@ class Recorder
     };
 
     private:
-    int packetNumber;
     char currentSessionName[REC_SESSION_NAME_MAX_LEN + 1];
     uint8_t dataBuffer[REC_MEMORY_BUFFER_SIZE];
     uint32_t dataIdx;

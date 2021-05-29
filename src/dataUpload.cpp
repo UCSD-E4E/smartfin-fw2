@@ -19,7 +19,6 @@ void DataUpload::init(void)
     Particle.syncTime();
     os_thread_yield();
     this->initSuccess = 1;
-    pSystemDesc->pRecorder->resetPacketNumber();
 }
 
 STATES_e DataUpload::run(void)
@@ -136,7 +135,6 @@ STATES_e DataUpload::run(void)
             SF_OSAL_printf("Failed to trim!");
             return STATE_CLI;
         }
-        pSystemDesc->pRecorder->incrementPacketNumber();
     }
 }
 
