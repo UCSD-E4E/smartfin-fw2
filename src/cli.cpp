@@ -69,6 +69,7 @@ static int CLI_gpsTerminal(void);
 static int CLI_testWaterDetect(void);
 static int CLI_connect(void);
 static int CLI_disconnect(void);
+static int CLI_displayVersion(void);
 
 const CLI_debugMenu_t CLI_debugMenu[] =
 {
@@ -80,6 +81,7 @@ const CLI_debugMenu_t CLI_debugMenu[] =
     {"Test Water Detect", CLI_testWaterDetect},
     {"Cloud connect", CLI_connect},
     {"Cloud disconnect", CLI_disconnect},
+    {"Display Version", CLI_displayVersion},
     {NULL, NULL}
 };
 
@@ -562,5 +564,11 @@ static int CLI_connect(void)
 static int CLI_disconnect(void)
 {
     Particle.disconnect();
+    return 1;
+}
+
+static int CLI_displayVersion(void)
+{
+    VERS_printBanner();
     return 1;
 }
