@@ -18,4 +18,6 @@
 #define FW_BRANCH           ""
 
 void VERS_printBanner(void);
+const char* VERS_getBuildDate(void);
+const char* VERS_getBuildTime(void);
 #endif
