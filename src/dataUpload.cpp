@@ -126,6 +126,7 @@ STATES_e DataUpload::run(void)
             SF_OSAL_printf("Failed to upload data!\n");
             continue;
         }
+        SF_OSAL_printf("Uploaded record %s\n", dataPublishBuffer);
         Particle.process();
         lastSendTime = millis();
 
