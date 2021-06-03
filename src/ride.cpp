@@ -10,6 +10,7 @@
 #include "system.hpp"
 #include "sleepTask.hpp"
 #include "utils.hpp"
+#include "vers.hpp"
 
 static void RIDE_setFileName(system_tick_t startTime);
 
@@ -24,6 +25,9 @@ static void SS_ensemble07Init(DeploymentSchedule_t* pDeployment);
 
 static void SS_ensemble08Func(DeploymentSchedule_t* pDeployment);
 static void SS_ensemble08Init(DeploymentSchedule_t* pDeployment);
+
+static void SS_fwVerInit(DeploymentSchedule_t* pDeployment);
+static void SS_fwVerFunc(DeploymentSchedule_t* pDeployment);
 
 typedef struct Ensemble10_eventData_
 {
@@ -60,6 +64,7 @@ DeploymentSchedule_t deploymentSchedule[] =
     {&SS_ensemble10Func, &SS_ensemble10Init, 1, 0, 1000, 0, 0, &ensemble10Data},
     {&SS_ensemble07Func, &SS_ensemble07Init, 1, 0, 10000, 0, 0, &ensemble07Data},
     {&SS_ensemble08Func, &SS_ensemble08Init, 1, 0, UINT32_MAX, 0, 0, &ensemble08Data},
+    {&SS_fwVerFunc, &SS_fwVerInit, 1, 0, UINT32_MAX, 0, 0, NULL},
     {NULL, NULL, 0, 0, 0, 0, 0, NULL}
 };
 
@@ -410,7 +415,7 @@ static void SS_ensemble10Func(DeploymentSchedule_t* pDeployment)
             temp -= 100;
         }
 
-        ensData.header.elapsedTime_ds = ((millis() - pDeployment->startTime) / 100) & 0x00FFFFFF;
+        ensData.header.elapsedTime_ds = Ens_getStartTime(pDeployment->startTime);
         SF_OSAL_printf("Ensemble timestamp: %d\n", ensData.header.elapsedTime_ds);
         ensData.data.ens10.rawTemp = N_TO_B_ENDIAN_2(temp / 0.0078125);
         ensData.data.ens10.rawAcceleration[0] = N_TO_B_ENDIAN_2(pData->acc[0] / pDeployment->measurementsToAccumulate);
@@ -461,7 +466,7 @@ static void SS_ensemble07Func(DeploymentSchedule_t* pDeployment)
     // Report accumulated measurements
     if(pData->accumulateCount == pDeployment->measurementsToAccumulate)
     {
-        ensData.header.elapsedTime_ds = ((millis() - pDeployment->startTime) / 100) & 0x00FFFFFF;
+        ensData.header.elapsedTime_ds = Ens_getStartTime(pDeployment->startTime);
         ensData.header.ensembleType = ENS_BATT;
         ensData.data.batteryVoltage = N_TO_B_ENDIAN_2((pData->battVoltage / pData->accumulateCount) * 1000);
 
@@ -503,12 +508,34 @@ static void SS_ensemble08Func(DeploymentSchedule_t* pDeployment)
             temp -= 100;
         }
         
-        ens.header.elapsedTime_ds = ((millis() - pDeployment->startTime) / 100) & 0x00FFFFFF;
+        ens.header.elapsedTime_ds = Ens_getStartTime(pDeployment->startTime);
         ens.header.ensembleType = ENS_TEMP_TIME;
         ens.ensData.rawTemp = N_TO_B_ENDIAN_2(temp / 0.0078125);
 
         pSystemDesc->pRecorder->putData(ens);
         memset(pData, 0, sizeof(Ensemble08_eventData_t));
     }
+
+}
+
+static void SS_fwVerInit(DeploymentSchedule_t* pDeployment)
+{
+    (void) pDeployment;
+}
+static void SS_fwVerFunc(DeploymentSchedule_t* pDeployment)
+{
+#pragma pack(push, 1)
+    struct textEns{
+        EnsembleHeader_t header;
+        uint8_t nChars;
+        char verBuf[32];
+    } ens;
+#pragma pack(pop)
+
+    ens.header.elapsedTime_ds = Ens_getStartTime(pDeployment->startTime);
+    ens.header.ensembleType = ENS_TEXT;
+
+    ens.nChars = snprintf(ens.verBuf, 32, "FW%d.%d.%d.%d%s", FW_MAJOR_VERSION, FW_MINOR_VERSION, FW_PATCH_VERSION, FW_BUILD_NUM, FW_BRANCH);
+    pSystemDesc->pRecorder->putBytes(&ens, sizeof(EnsembleHeader_t) + sizeof(uint8_t) + ens.nChars);
 
 }
