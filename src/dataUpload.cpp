@@ -15,8 +15,6 @@ void DataUpload::init(void)
 
     this->initSuccess = 0;
     Particle.connect();
-    waitFor(Particle.connected, SF_CELL_SIGNAL_TIMEOUT_MS);
-    Particle.syncTime();
     os_thread_yield();
     this->initSuccess = 1;
 }
