@@ -21,5 +21,6 @@ class ChargeTask : public Task{
     private:
     char inputBuffer[CLI_BUFFER_LEN];
     LEDStatus ledStatus;
+    system_tick_t startTime;
 };
 #endif
