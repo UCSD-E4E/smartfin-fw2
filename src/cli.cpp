@@ -477,7 +477,7 @@ static int CLI_monitorSensors(void)
 
         temp = pSystemDesc->pTempSensor->getTemp();
 
-        waterDetect = pSystemDesc->pWaterSensor->getCurrentReading();
+        waterDetect = pSystemDesc->pWaterSensor->getLastReading();
 
         location[0] = pSystemDesc->pGPS->location.lat();
         location[1] = pSystemDesc->pGPS->location.lng();
@@ -545,7 +545,7 @@ static int CLI_testWaterDetect(void)
     char user;
     while(run)
     {
-        pSystemDesc->pWaterSensor->getCurrentReading();
+        pSystemDesc->pWaterSensor->getLastReading();
         user = getch();
         if(user == '\x1b')
         {

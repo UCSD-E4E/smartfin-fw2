@@ -79,6 +79,13 @@ void RideInitTask::init(void)
     this->ledStatus.setPriority(RIDE_RGB_LED_PRIORITY);
     this->ledStatus.setActive();
 
+    // reset no water timeout array to all zeros
+    pSystemDesc->pWaterSensor->resetArray();
+    // change window to small window (smaller moving average for quick detect)
+    pSystemDesc->pWaterSensor->setWindowSize(RIDE_WATER_DETECT_SURF_SESSION_INIT_WINDOW);
+    // set initial state to not in water for hysteresis
+    pSystemDesc->pWaterSensor->forceState(WATER_SENSOR_LOW_STATE);
+
     digitalWrite(GPS_PWR_EN_PIN, HIGH);
     delay(RIDE_GPS_STARTUP_MS);
 
@@ -86,12 +93,6 @@ void RideInitTask::init(void)
     this->gpsLocked = false;
     SF_OSAL_printf("GPS Initialised @ %dms\n", millis());
 
-    // reset no water timeout array to all zeros
-    pSystemDesc->pWaterSensor->resetArray();
-    // change window to small window (smaller moving average for quick detect)
-    pSystemDesc->pWaterSensor->setWindowSize(RIDE_WATER_DETECT_SURF_SESSION_INIT_WINDOW);
-    // set initial state to not in water for hysteresis
-    pSystemDesc->pWaterSensor->forceState(WATER_SENSOR_LOW_STATE);
 
 }
 
@@ -166,7 +167,7 @@ STATES_e RideInitTask::run(void)
         }
 
         // if water is detected 
-        waterStatus = pSystemDesc->pWaterSensor->takeReading();
+        waterStatus = pSystemDesc->pWaterSensor->getLastStatus();
         if(waterStatus == WATER_SENSOR_HIGH_STATE)
         {
             return STATE_DEPLOYED;
@@ -227,6 +228,29 @@ STATES_e RideTask::run(void)
         }
 
         RIDE_setFileName(this->startTime);
+
+        if((pSystemDesc->pGPS->location.age() < GPS_AGE_VALID_MS) && (pSystemDesc->pGPS->location.age() >= 0))
+        {
+            if(!this->gpsLocked)
+            {
+                SF_OSAL_printf("GPS Location Lock @ %dms\n", millis());
+                this->gpsLocked = true;
+            }
+            this->ledStatus.setColor(RIDE_RGB_LED_COLOR);
+            this->ledStatus.setPattern(RIDE_RGB_LED_PATTERN_NOGPS);
+            this->ledStatus.setPeriod(RIDE_RGB_LED_PERIOD_NOGPS);
+            this->ledStatus.setPriority(RIDE_RGB_LED_PRIORITY);
+            this->ledStatus.setActive();
+        }
+        else
+        {
+            this->gpsLocked = false;
+            this->ledStatus.setColor(RIDE_RGB_LED_COLOR);
+            this->ledStatus.setPattern(RIDE_RGB_LED_PATTERN_GPS);
+            this->ledStatus.setPeriod(RIDE_RGB_LED_PERIOD_GPS);
+            this->ledStatus.setPriority(RIDE_RGB_LED_PRIORITY);
+            this->ledStatus.setActive();
+        }
         
         getNextEvent(&pNextEvent, &nextEventTime);
         while(millis() < nextEventTime)
@@ -236,7 +260,7 @@ STATES_e RideTask::run(void)
         pNextEvent->func(pNextEvent);
         pNextEvent->lastExecuteTime = nextEventTime;
 
-        if(pSystemDesc->pWaterSensor->takeReading() == WATER_SENSOR_LOW_STATE)
+        if(pSystemDesc->pWaterSensor->getLastStatus() == WATER_SENSOR_LOW_STATE)
         {
             SF_OSAL_printf("Out of water\n");
             return STATE_UPLOAD;

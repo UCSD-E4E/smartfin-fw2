@@ -38,7 +38,7 @@ STATES_e ChargeTask::run(void)
         {
             return STATE_DEEP_SLEEP;
         }
-        if(pSystemDesc->pWaterSensor->takeReading())
+        if(pSystemDesc->pWaterSensor->getLastReading())
         {
             return STATE_SESSION_INIT;
         }

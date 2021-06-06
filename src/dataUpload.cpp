@@ -82,7 +82,7 @@ STATES_e DataUpload::run(void)
         }
 
         // connected, but maybe we went into the water
-        if(pSystemDesc->pWaterSensor->takeReading() == WATER_SENSOR_HIGH_STATE)
+        if(pSystemDesc->pWaterSensor->getLastStatus() == WATER_SENSOR_HIGH_STATE)
         {
             SF_OSAL_printf("In the water!\n");
             return STATE_SESSION_INIT;
@@ -145,7 +145,7 @@ void DataUpload::exit(void)
 STATES_e DataUpload::exitState(void)
 {
     // if in water, switch to data collection
-    if(pSystemDesc->pWaterSensor->getCurrentStatus() == WATER_SENSOR_HIGH_STATE)
+    if(pSystemDesc->pWaterSensor->getLastStatus() == WATER_SENSOR_HIGH_STATE)
     {
         return STATE_SESSION_INIT;
     }
