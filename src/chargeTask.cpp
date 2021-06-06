@@ -3,6 +3,8 @@
 #include "Particle.h"
 #include "conio.hpp"
 #include "system.hpp"
+#include "sleepTask.hpp"
+#include "consts.h"
 
 static void byteshiftl(void* pData, size_t dataLen, size_t nPos, uint8_t fill);
 
@@ -15,10 +17,12 @@ void ChargeTask::init(void)
     this->ledStatus.setPeriod(CHARGE_RGB_LED_PERIOD);
     this->ledStatus.setPriority(CHARGE_RGB_LED_PRIORITY);
     this->ledStatus.setActive();
+    this->startTime = millis();
 }
 
 STATES_e ChargeTask::run(void)
 {
+    const SleepTask::BOOT_BEHAVIOR_e bootBehavior = SleepTask::getBootBehavior();
     while(1)
     {
         if(kbhit())
@@ -34,9 +38,17 @@ STATES_e ChargeTask::run(void)
         {
             return STATE_DEEP_SLEEP;
         }
-        if(pSystemDesc->pWaterSensor->takeReading())
+        if(pSystemDesc->pWaterSensor->getLastReading())
         {
             return STATE_SESSION_INIT;
+        }
+
+        if(bootBehavior == SleepTask::BOOT_BEHAVIOR_UPLOAD_REATTEMPT)
+        {
+            if(millis() - this->startTime >= SF_UPLOAD_REATTEMPT_DELAY_SEC * MSEC_PER_SEC)
+            {
+                return STATE_UPLOAD;
+            }
         }
         os_thread_yield();
     }

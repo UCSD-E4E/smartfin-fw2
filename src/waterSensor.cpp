@@ -1,5 +1,6 @@
 #include "waterSensor.hpp"
 #include "product.hpp" // Added by PJB. Is it conventional to do this? Not sure but we need USB_PWR_DETECT_PIN
+#include "conio.hpp"
 
 WaterSensor::WaterSensor(uint8_t water_detect_en_pin_to_set, uint8_t water_detect_pin_to_set, uint8_t window_size, uint8_t array_size) : water_detect_en_pin(water_detect_en_pin_to_set), water_detect_pin(water_detect_pin_to_set), moving_window_size(window_size), water_detect_array_size(array_size)
 {
@@ -70,8 +71,14 @@ uint8_t WaterSensor::takeReading()
     if (samples_taken_since_reset < moving_window_size)
         samples_taken_since_reset++;
 
-    // if we haven't gotten enough readings, return the hystersis enforced last value
-    if (samples_taken_since_reset < moving_window_size)
+    /*
+     * if we haven't gotten enough readings, return the hystersis enforced last value
+     * 
+     * we compare to high_detect_percentage of the moving window size because if
+     * all of the samples measured so far are 1, this is sufficient to say we
+     * are in the water.
+     */
+    if (samples_taken_since_reset < moving_window_size / 100. * high_detect_percentage)
     {
         return last_water_detect;
     }
@@ -95,6 +102,21 @@ uint8_t WaterSensor::takeReading()
     {
         return last_water_detect;
     }
+}
+
+void WaterSensor::update()
+{
+    this->takeReading();
+}
+
+uint8_t WaterSensor::getLastReading()
+{
+    return this->water_detect_array[this->array_location];
+}
+
+uint8_t WaterSensor::getLastStatus()
+{
+    return last_water_detect;
 }
 
 // gets the current in/out of water status (return true = in water, false = out)

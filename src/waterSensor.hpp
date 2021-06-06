@@ -67,6 +67,27 @@ public:
     // set the high detection percentage of the moving window for hystersis
     bool setHighDetectPercentage(uint8_t high_percentage);
 
+    /**
+     * @brief Causes the sensor to be read and the filter to be updated.
+     * 
+     * This should be called once every second.
+     */
+    void update();
+
+    /**
+     * @brief Get the last reading (unfiltered)
+     * 
+     * @return uint8_t 1 if wet, otherwise 0
+     */
+    uint8_t getLastReading();
+
+    /**
+     * @brief Get the Last Status (filtered)
+     * 
+     * @return uint8_t 1 if wet, otherwise 0
+     */
+    uint8_t getLastStatus();
+
 private:
     // returns a valid location (between 0 and WATER_DETECT_ARRAY_SIZE) for a location + an offset
     uint8_t waterDetectArrayLocation(int16_t location, int16_t offset);

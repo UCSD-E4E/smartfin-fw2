@@ -105,7 +105,7 @@
  * average to determine if we are in or out of the water.  Generally a sample
  * happens 1/second
  */
-#define WATER_DETECT_SURF_SESSION_INIT_WINDOW   10
+#define WATER_DETECT_SURF_SESSION_INIT_WINDOW   40
 /**
  * Max size of the window/how large the FIFO array is
  */

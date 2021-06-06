@@ -191,7 +191,8 @@ static void SYS_chargerTask(void)
 static void SYS_waterTask(void)
 {
     // TODO fix this to be the one polling for wet/dry hysteresis.
-    if(systemDesc.pWaterSensor->getCurrentReading())
+    systemDesc.pWaterSensor->update();
+    if(systemDesc.pWaterSensor->getLastReading())
     {
         systemDesc.pWaterLED->setState(SFLed::SFLED_STATE_ON);
     }

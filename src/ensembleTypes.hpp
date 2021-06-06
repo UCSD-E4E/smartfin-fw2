@@ -1,5 +1,6 @@
 #ifndef __ENSEMBLE_TYPES_HPP__
 #define __ENSEMBLE_TYPES_HPP__
+#include "Particle.h"
 #include <cstdint>
 typedef enum EnsembleID_
 {
@@ -61,4 +62,6 @@ typedef struct Ensemble11_data_
     int32_t location[2];
 }Ensemble11_data_t;
 #pragma pack(pop)
+
+unsigned int Ens_getStartTime(system_tick_t sessionStart);
 #endif

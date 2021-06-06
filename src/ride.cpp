@@ -10,6 +10,7 @@
 #include "system.hpp"
 #include "sleepTask.hpp"
 #include "utils.hpp"
+#include "vers.hpp"
 
 static void RIDE_setFileName(system_tick_t startTime);
 
@@ -24,6 +25,9 @@ static void SS_ensemble07Init(DeploymentSchedule_t* pDeployment);
 
 static void SS_ensemble08Func(DeploymentSchedule_t* pDeployment);
 static void SS_ensemble08Init(DeploymentSchedule_t* pDeployment);
+
+static void SS_fwVerInit(DeploymentSchedule_t* pDeployment);
+static void SS_fwVerFunc(DeploymentSchedule_t* pDeployment);
 
 typedef struct Ensemble10_eventData_
 {
@@ -60,6 +64,7 @@ DeploymentSchedule_t deploymentSchedule[] =
     {&SS_ensemble10Func, &SS_ensemble10Init, 1, 0, 1000, 0, 0, &ensemble10Data},
     {&SS_ensemble07Func, &SS_ensemble07Init, 1, 0, 10000, 0, 0, &ensemble07Data},
     {&SS_ensemble08Func, &SS_ensemble08Init, 1, 0, UINT32_MAX, 0, 0, &ensemble08Data},
+    {&SS_fwVerFunc, &SS_fwVerInit, 1, 0, UINT32_MAX, 0, 0, NULL},
     {NULL, NULL, 0, 0, 0, 0, 0, NULL}
 };
 
@@ -74,6 +79,13 @@ void RideInitTask::init(void)
     this->ledStatus.setPriority(RIDE_RGB_LED_PRIORITY);
     this->ledStatus.setActive();
 
+    // reset no water timeout array to all zeros
+    pSystemDesc->pWaterSensor->resetArray();
+    // change window to small window (smaller moving average for quick detect)
+    pSystemDesc->pWaterSensor->setWindowSize(RIDE_WATER_DETECT_SURF_SESSION_INIT_WINDOW);
+    // set initial state to not in water for hysteresis
+    pSystemDesc->pWaterSensor->forceState(WATER_SENSOR_LOW_STATE);
+
     digitalWrite(GPS_PWR_EN_PIN, HIGH);
     delay(RIDE_GPS_STARTUP_MS);
 
@@ -81,12 +93,6 @@ void RideInitTask::init(void)
     this->gpsLocked = false;
     SF_OSAL_printf("GPS Initialised @ %dms\n", millis());
 
-    // reset no water timeout array to all zeros
-    pSystemDesc->pWaterSensor->resetArray();
-    // change window to small window (smaller moving average for quick detect)
-    pSystemDesc->pWaterSensor->setWindowSize(RIDE_WATER_DETECT_SURF_SESSION_INIT_WINDOW);
-    // set initial state to not in water for hysteresis
-    pSystemDesc->pWaterSensor->forceState(WATER_SENSOR_LOW_STATE);
 
 }
 
@@ -161,7 +167,7 @@ STATES_e RideInitTask::run(void)
         }
 
         // if water is detected 
-        waterStatus = pSystemDesc->pWaterSensor->takeReading();
+        waterStatus = pSystemDesc->pWaterSensor->getLastStatus();
         if(waterStatus == WATER_SENSOR_HIGH_STATE)
         {
             return STATE_DEPLOYED;
@@ -222,6 +228,29 @@ STATES_e RideTask::run(void)
         }
 
         RIDE_setFileName(this->startTime);
+
+        if((pSystemDesc->pGPS->location.age() < GPS_AGE_VALID_MS) && (pSystemDesc->pGPS->location.age() >= 0))
+        {
+            if(!this->gpsLocked)
+            {
+                SF_OSAL_printf("GPS Location Lock @ %dms\n", millis());
+                this->gpsLocked = true;
+            }
+            this->ledStatus.setColor(RIDE_RGB_LED_COLOR);
+            this->ledStatus.setPattern(RIDE_RGB_LED_PATTERN_NOGPS);
+            this->ledStatus.setPeriod(RIDE_RGB_LED_PERIOD_NOGPS);
+            this->ledStatus.setPriority(RIDE_RGB_LED_PRIORITY);
+            this->ledStatus.setActive();
+        }
+        else
+        {
+            this->gpsLocked = false;
+            this->ledStatus.setColor(RIDE_RGB_LED_COLOR);
+            this->ledStatus.setPattern(RIDE_RGB_LED_PATTERN_GPS);
+            this->ledStatus.setPeriod(RIDE_RGB_LED_PERIOD_GPS);
+            this->ledStatus.setPriority(RIDE_RGB_LED_PRIORITY);
+            this->ledStatus.setActive();
+        }
         
         getNextEvent(&pNextEvent, &nextEventTime);
         while(millis() < nextEventTime)
@@ -231,7 +260,7 @@ STATES_e RideTask::run(void)
         pNextEvent->func(pNextEvent);
         pNextEvent->lastExecuteTime = nextEventTime;
 
-        if(pSystemDesc->pWaterSensor->takeReading() == WATER_SENSOR_LOW_STATE)
+        if(pSystemDesc->pWaterSensor->getLastStatus() == WATER_SENSOR_LOW_STATE)
         {
             SF_OSAL_printf("Out of water\n");
             return STATE_UPLOAD;
@@ -410,7 +439,7 @@ static void SS_ensemble10Func(DeploymentSchedule_t* pDeployment)
             temp -= 100;
         }
 
-        ensData.header.elapsedTime_ds = ((millis() - pDeployment->startTime) / 100) & 0x00FFFFFF;
+        ensData.header.elapsedTime_ds = Ens_getStartTime(pDeployment->startTime);
         SF_OSAL_printf("Ensemble timestamp: %d\n", ensData.header.elapsedTime_ds);
         ensData.data.ens10.rawTemp = N_TO_B_ENDIAN_2(temp / 0.0078125);
         ensData.data.ens10.rawAcceleration[0] = N_TO_B_ENDIAN_2(pData->acc[0] / pDeployment->measurementsToAccumulate);
@@ -461,7 +490,7 @@ static void SS_ensemble07Func(DeploymentSchedule_t* pDeployment)
     // Report accumulated measurements
     if(pData->accumulateCount == pDeployment->measurementsToAccumulate)
     {
-        ensData.header.elapsedTime_ds = ((millis() - pDeployment->startTime) / 100) & 0x00FFFFFF;
+        ensData.header.elapsedTime_ds = Ens_getStartTime(pDeployment->startTime);
         ensData.header.ensembleType = ENS_BATT;
         ensData.data.batteryVoltage = N_TO_B_ENDIAN_2((pData->battVoltage / pData->accumulateCount) * 1000);
 
@@ -503,12 +532,34 @@ static void SS_ensemble08Func(DeploymentSchedule_t* pDeployment)
             temp -= 100;
         }
         
-        ens.header.elapsedTime_ds = ((millis() - pDeployment->startTime) / 100) & 0x00FFFFFF;
+        ens.header.elapsedTime_ds = Ens_getStartTime(pDeployment->startTime);
         ens.header.ensembleType = ENS_TEMP_TIME;
         ens.ensData.rawTemp = N_TO_B_ENDIAN_2(temp / 0.0078125);
 
         pSystemDesc->pRecorder->putData(ens);
         memset(pData, 0, sizeof(Ensemble08_eventData_t));
     }
+
+}
+
+static void SS_fwVerInit(DeploymentSchedule_t* pDeployment)
+{
+    (void) pDeployment;
+}
+static void SS_fwVerFunc(DeploymentSchedule_t* pDeployment)
+{
+#pragma pack(push, 1)
+    struct textEns{
+        EnsembleHeader_t header;
+        uint8_t nChars;
+        char verBuf[32];
+    } ens;
+#pragma pack(pop)
+
+    ens.header.elapsedTime_ds = Ens_getStartTime(pDeployment->startTime);
+    ens.header.ensembleType = ENS_TEXT;
+
+    ens.nChars = snprintf(ens.verBuf, 32, "FW%d.%d.%d.%d%s", FW_MAJOR_VERSION, FW_MINOR_VERSION, FW_PATCH_VERSION, FW_BUILD_NUM, FW_BRANCH);
+    pSystemDesc->pRecorder->putBytes(&ens, sizeof(EnsembleHeader_t) + sizeof(uint8_t) + ens.nChars);
 
 }
