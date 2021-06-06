@@ -7,6 +7,8 @@
  * ----------------------------------------------------------------------------
  * 06/03/21 NH  v2.0.0.5
  *              - Bug fixes for smartfin-fw2#11, smartfin-fw2#14, smartfin-fw2#23
+ *              - Bug fixes for smartfin-fw2#4
+ *              - Fixed GPS status LED during deploy
  * 05/28/21 NH  v2.0.0.4
  *              - Bug fixes for smartfin-fw2#10, smartfin-fw2#15, smartfin-fw2#2
  *              - Fixing compiler warnings
