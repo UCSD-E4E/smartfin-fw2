@@ -21,6 +21,8 @@
 #include "chargeTask.hpp"
 #include "ride.hpp"
 #include "vers.hpp"
+#include "flog.hpp"
+#include "mfgTest.hpp"
 // PRODUCT_VERSION(FW_MAJOR_VERSION << 8 | FW_MINOR_VERSION)
 
 #define SF_DEBUG
@@ -37,6 +39,7 @@ static SleepTask sleepTask;
 static ChargeTask chargeTask;
 static RideInitTask rideInitTask;
 static RideTask rideTask;
+static MfgTest mfgTask;
 
 static StateMachine_t stateMachine[] = 
 {
@@ -46,6 +49,7 @@ static StateMachine_t stateMachine[] =
   {STATE_CHARGE, &chargeTask},
   {STATE_SESSION_INIT, &rideInitTask},
   {STATE_DEPLOYED, &rideTask},
+  {STATE_MFG_TEST, &mfgTask},
   {STATE_NULL, NULL}
 };
 
@@ -70,10 +74,13 @@ void setup()
   // Put initialization like pinMode and begin functions here.
 
   // Doing Serial initialization here so that we have this available immediately
+  FLOG_Initialize();
+  FLOG_AddError(FLOG_SYS_START, 0);
   Serial.begin(SERIAL_DEBUG_BAUD_RATE);
   // This protects against a boot loop due to idiot programming
   if(RESET_GOOD != ~nRESET_GOOD)
   {
+    FLOG_AddError(FLOG_SYS_BADSRAM, 0);
     // if in boot loop, that's 15 seconds to save everything
     if(System.resetReason() == RESET_REASON_POWER_DOWN)
     {
@@ -99,8 +106,8 @@ void setup()
   SF_OSAL_printf("Reset Reason: %d\n", System.resetReason());
   SF_OSAL_printf("Starting Device: %s\n", pSystemDesc->deviceID);
 
-  SF_OSAL_printf("Battery = %lf %%\n", pSystemDesc->battery->getSoC());
-  SF_OSAL_printf("Battery = %lf V\n", pSystemDesc->battery->getVCell());
+  SF_OSAL_printf("Battery = %lf %%\n", pSystemDesc->pBattery->getSoC());
+  SF_OSAL_printf("Battery = %lf V\n", pSystemDesc->pBattery->getVCell());
 
   SF_OSAL_printf("Time.now() = %ld\n", Time.now());
 
@@ -131,16 +138,19 @@ void mainThread(void* args)
     printState(pState->state);
     SF_OSAL_printf("\n");
   #endif
+    FLOG_AddError(FLOG_SYS_INITSTATE, (uint16_t) currentState);
     pState->task->init();
     #ifdef SF_DEBUG
     SF_OSAL_printf("Executing state body\n");
     #endif
+    FLOG_AddError(FLOG_SYS_EXECSTATE, (uint16_t) currentState);
     currentState = pState->task->run();
     #ifdef SF_DEBUG
     SF_OSAL_printf("Next State: ");
     printState(currentState);
     SF_OSAL_printf("\n");
     #endif
+    FLOG_AddError(FLOG_SYS_EXITSTATE, (uint16_t) currentState);
     pState->task->exit();
     #ifdef SF_DEBUG
     SF_OSAL_printf("Exit complete\n");
@@ -151,33 +161,34 @@ void mainThread(void* args)
 static void initializeTaskObjects(void)
 {
   currentState = SF_DEFAULT_STATE;
-  // SleepTask::loadBootBehavior();
+  SleepTask::loadBootBehavior();
 
-  // switch(SleepTask::getBootBehavior())
-  // {
-  // default:
-  // case SleepTask::BOOT_BEHAVIOR_NORMAL:
-  //   if(digitalRead(SF_USB_PWR_DETECT_PIN) == HIGH)
-  //   {
-  //     currentState = STATE_UPLOAD;
-  //   }
-  //   else
-  //   {
-  //     currentState = SF_DEFAULT_STATE;
-  //   }
-  //   break;
-  // case SleepTask::BOOT_BEHAVIOR_TMP_CAL_START:
-  // case SleepTask::BOOT_BEHAVIOR_TMP_CAL_CONTINUE:
-  //   currentState = STATE_TMP_CAL;
-  //   break;
-  // case SleepTask::BOOT_BEHAVIOR_TMP_CAL_END:
-  //   currentState = STATE_CLI;
-  //   break;
-  // case SleepTask::BOOT_BEHAVIOR_UPLOAD_REATTEMPT:
-  //   // TODO: Fix to allow waking up into deployment
-  //   currentState = STATE_UPLOAD;
-  //   break;
-  // }
+  switch(SleepTask::getBootBehavior())
+  {
+  default:
+  case SleepTask::BOOT_BEHAVIOR_NORMAL:
+    if(digitalRead(SF_USB_PWR_DETECT_PIN) == HIGH)
+    {
+      currentState = STATE_UPLOAD;
+    }
+    else
+    {
+      currentState = SF_DEFAULT_STATE;
+    }
+    break;
+  case SleepTask::BOOT_BEHAVIOR_TMP_CAL_START:
+  case SleepTask::BOOT_BEHAVIOR_TMP_CAL_CONTINUE:
+    currentState = STATE_TMP_CAL;
+    break;
+  case SleepTask::BOOT_BEHAVIOR_TMP_CAL_END:
+    currentState = STATE_CLI;
+    break;
+  case SleepTask::BOOT_BEHAVIOR_UPLOAD_REATTEMPT:
+    // TODO: Fix to allow waking up into deployment
+    currentState = STATE_UPLOAD;
+    break;
+  }
+  FLOG_AddError(FLOG_SYS_STARTSTATE, (uint16_t) currentState);
 }
 
 static StateMachine_t* findState(STATES_e state)

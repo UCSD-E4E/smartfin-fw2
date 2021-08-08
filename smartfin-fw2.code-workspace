@@ -22,7 +22,19 @@
 			"iosfwd": "cpp",
 			"new": "cpp",
 			"streambuf": "cpp",
-			"cstdio": "cpp"
+			"cstdio": "cpp",
+			"atomic": "cpp",
+			"array": "cpp",
+			"bitset": "cpp",
+			"functional": "cpp",
+			"memory": "cpp",
+			"tuple": "cpp",
+			"future": "cpp",
+			"limits": "cpp",
+			"mutex": "cpp",
+			"numeric": "cpp",
+			"thread": "cpp",
+			"utility": "cpp"
 		}
 	}
 }

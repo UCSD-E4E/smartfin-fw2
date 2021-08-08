@@ -5,6 +5,7 @@
 #define SF_OSAL_PRINTF_BUFLEN   1024
 #define SF_OSAL_GETCH_USE_WDOG
 #define SF_OSAL_GPS_GETLINE_ECHO
+#define SF_OSAL_LINE_WIDTH  80
 #ifdef __cplusplus
 extern "C"
 {

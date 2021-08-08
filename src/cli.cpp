@@ -5,6 +5,7 @@
 #include <cstdio>
 #include <cstdlib>
 #include <cmath>
+#include <inttypes.h>
 
 #include "conio.hpp"
 #include "product.hpp"
@@ -13,6 +14,8 @@
 #include "fileCLI.hpp"
 #include "system.hpp"
 #include "sleepTask.hpp"
+#include "flog.hpp"
+#include "mfgTest.hpp"
 
 typedef const struct CLI_menu_
 {
@@ -22,6 +25,7 @@ typedef const struct CLI_menu_
 
 typedef const struct CLI_debugMenu_
 {
+    int cmd;
     const char *const fnName;
     int (*fn)(void);
 } CLI_debugMenu_t;
@@ -44,11 +48,12 @@ static void CLI_doDebugMode(void);
 static  CLI_menu_t const* CLI_findCommand(char const* const cmd, CLI_menu_t const* const menu);
 static int CLI_executeDebugMenu(const int cmd, CLI_debugMenu_t* menu);
 static void CLI_displayDebugMenu(CLI_debugMenu_t* menu);
+static void CLI_doCalibrateMode(void);
 
-
-const CLI_menu_t CLI_menu[12] =
+const CLI_menu_t CLI_menu[13] =
     {
         {'#', &CLI_displayMenu},
+        {'C', &CLI_doCalibrateMode},
         {'D', &CLI_doSleep},
         {'T', &CLI_doMfgTest},
         {'U', &CLI_doUpload},
@@ -70,19 +75,27 @@ static int CLI_testWaterDetect(void);
 static int CLI_connect(void);
 static int CLI_disconnect(void);
 static int CLI_displayVersion(void);
+static int CLI_restart(void);
+static int CLI_displayFLOG(void);
+static int CLI_clearFLOG(void);
+static int CLI_executeMfgPeripheralTest(void);
 
 const CLI_debugMenu_t CLI_debugMenu[] =
 {
-    {"Display System Desc", CLI_displaySystemDesc},
-    {"Load Boot Behavior", CLI_testSleepLoadBoot},
-    {"Set LED State", CLI_setLEDs},
-    {"Monitor Sensors", CLI_monitorSensors},
-    {"GPS Terminal", CLI_gpsTerminal},
-    {"Test Water Detect", CLI_testWaterDetect},
-    {"Cloud connect", CLI_connect},
-    {"Cloud disconnect", CLI_disconnect},
-    {"Display Version", CLI_displayVersion},
-    {NULL, NULL}
+    {1, "Display System Desc", CLI_displaySystemDesc},
+    {2, "Load Boot Behavior", CLI_testSleepLoadBoot},
+    {3, "Set LED State", CLI_setLEDs},
+    {4, "Monitor Sensors", CLI_monitorSensors},
+    {5, "GPS Terminal", CLI_gpsTerminal},
+    {6, "Test Water Detect", CLI_testWaterDetect},
+    {7, "Cloud connect", CLI_connect},
+    {8, "Cloud disconnect", CLI_disconnect},
+    {9, "Display Version", CLI_displayVersion},
+    {10, "Restart", CLI_restart},
+    {11, "Display Fault Log", CLI_displayFLOG},
+    {12, "Clear Fault Log", CLI_clearFLOG},
+    {13, "Execute Mfg Peripheral Test", CLI_executeMfgPeripheralTest},
+    {0, NULL, NULL}
 };
 
 void CLI::init(void)
@@ -300,10 +313,14 @@ static void CLI_doDebugMode(void)
         CLI_displayDebugMenu(CLI_debugMenu);
         SF_OSAL_printf("*>");
         getline(inputBuffer, 80);
+        if(strlen(inputBuffer) == 0)
+        {
+            continue;
+        }
         cmdInput = atoi(inputBuffer);
         if(0 == cmdInput)
         {
-            return;
+            CLI_debugRun = 0;
         }
         CLI_executeDebugMenu(cmdInput, CLI_debugMenu);
     }
@@ -316,7 +333,7 @@ static int CLI_executeDebugMenu(const int cmd, CLI_debugMenu_t* menu)
 
     for(i = 1; menu[i - 1].fn; i++)
     {
-        if(i == cmd)
+        if(menu[i - 1].cmd == cmd)
         {
             SF_OSAL_printf("Executing %s\n", menu[i-1].fnName);
             return menu[i-1].fn();
@@ -391,6 +408,17 @@ static int CLI_displaySystemDesc(void)
 static int CLI_testSleepLoadBoot(void)
 {
     SleepTask::BOOT_BEHAVIOR_e behavior;
+    int input;
+    char cmdBuf[80];
+
+    SF_OSAL_printf("Enter test behavior: ");
+    getline(cmdBuf, 80);
+    if(1 != sscanf(cmdBuf, "%d", &input))
+    {
+        return 0;
+    }
+    SleepTask::setBootBehavior((SleepTask::BOOT_BEHAVIOR_e) input);
+
     SleepTask::loadBootBehavior();
     behavior = SleepTask::getBootBehavior();
     SF_OSAL_printf("Behavior: %d\n", behavior);
@@ -488,7 +516,7 @@ static int CLI_monitorSensors(void)
         }
 
         // SF_OSAL_printf("Time between: %08.2f\r", elapsed / count);
-        SF_OSAL_printf("%6d\t%8.4f\t%8.4f\t%8.4f\t%8.4f\t%8.4f\t%8.4f\t%8d\t%8d\t%8d\t%8.4f\t%8d\t%10.6f\t%10.6f\n", millis(), 
+        SF_OSAL_printf("%6d\t%8.4f\t%8.4f\t%8.4f\t%8.4f\t%8.4f\t%8.4f\t%8d\t%8d\t%8d\t%8.4f\t%8d\t%10.6f\t%10.6f\r", millis(), 
             accelData[0], accelData[1], accelData[2],
             gyroData[0], gyroData[1], gyroData[2],
             magData[0], magData[1], magData[2],
@@ -571,4 +599,137 @@ static int CLI_displayVersion(void)
 {
     VERS_printBanner();
     return 1;
+}
+
+static int CLI_restart(void)
+{
+    System.reset();
+    return 1;
+}
+
+static int CLI_displayFLOG(void)
+{
+    FLOG_DisplayLog();
+    return 1;
+}
+
+static int CLI_clearFLOG(void)
+{
+    FLOG_ClearLog();
+    return 1;
+}
+
+static void CLI_doCalibrateMode(void)
+{
+    char userInput[32];
+    uint8_t numCalAttempts;
+    uint32_t cycleTime, dataCollectionPeriod;
+    if (pSystemDesc->pTime->isValid() == false)
+    {
+        SF_OSAL_printf("Please wait to get a valid time from the Particle network.\nWaiting.");
+        Particle.connect();
+
+        // while we don't get a valid time and haven't hit the timeout
+        while ((Time.isValid() == false))
+        {
+            delay(1000);
+            SF_OSAL_printf(".");
+        }
+
+        // turn off the cell modem after we're done searching for a signal/time
+        Cellular.off();
+    }
+
+    if(!pSystemDesc->pTime->isValid())
+    {
+        return;
+    }
+
+    SF_OSAL_printf("\nParticle Time Lock!\n");
+
+    SF_OSAL_printf("Please enter the number of temp cycles: ");
+    getline(userInput, 32);
+    if(1 != sscanf(userInput, "%hhu", &numCalAttempts))
+    {
+        SF_OSAL_printf("Unknown input!\n");
+        return;
+    }
+    SF_OSAL_printf("Temp cycles stored = %hu\n", numCalAttempts);
+    pSystemDesc->pNvram->put(NVRAM::TMP116_CAL_ATTEMPTS_TOTAL, numCalAttempts);
+    
+
+    SF_OSAL_printf("Please enter the cycle time in seconds (total time between each temp measurement): ");
+    getline(userInput, 32);
+    if(1 != sscanf(userInput, "%lu", &cycleTime))
+    {
+        SF_OSAL_printf("Unknown input!\n");
+        return;
+    }
+    SF_OSAL_printf("Cycle time = %lu seconds\n", cycleTime);
+    pSystemDesc->pNvram->put(NVRAM::TMP116_CAL_CYCLE_PERIOD_SEC, cycleTime);
+
+    SF_OSAL_printf("Please enter the measurement time in seconds (total time taking measurements each cycle)\n");
+    getline(userInput, 32);
+    if(1 != sscanf(userInput, "%lu", &dataCollectionPeriod))
+    {
+        SF_OSAL_printf("Unknown input!\n");
+        return;
+    }
+    SF_OSAL_printf("Cycle time = %lu seconds\n", dataCollectionPeriod);
+    pSystemDesc->pNvram->put(NVRAM::TMP116_CAL_DATA_COLLECTION_PERIOD_SEC, dataCollectionPeriod);
+
+    // reset the calibration routine to attempt #1
+    pSystemDesc->pNvram->put(NVRAM::TMP116_CAL_CURRENT_ATTEMPT, (uint8_t) 1);
+
+    // remove previous calibration file if necessary
+    pSystemDesc->pFileSystem->remove("TMP116_CAL");
+
+    // setup calibration boot behavior
+    SleepTask::setBootBehavior(SleepTask::BOOT_BEHAVIOR_TMP_CAL_START);
+    SF_OSAL_printf("\nSystem will boot into calibration mode upon next power cycle\n");
+
+    System.sleep(SLEEP_MODE_SOFTPOWEROFF);
+}
+
+static int CLI_executeMfgPeripheralTest(void)
+{
+    int testNum = 0;
+    int i = 0;
+    const char* testName[] = {
+        "GPS Test",
+        "IMU Test",
+        "Temperature Test",
+        "Cellular Test",
+        "Wet/Dry Sensor Test",
+        "Status LED Test",
+        "Battery Status Test",
+        "Battery Voltage Test",
+        NULL
+    };
+    char userInput[SF_OSAL_LINE_WIDTH];
+    int retval;
+
+    for(i = 0; testName[i]; i++)
+    {
+        SF_OSAL_printf("%2d: %s\n", i, testName[i]);
+    }
+    SF_OSAL_printf("Test Number: ");
+    getline(userInput, SF_OSAL_LINE_WIDTH);
+
+    if(sscanf(userInput, "%d", &testNum) != 1)
+    {
+        SF_OSAL_printf("Unknown input\n");
+        return 0;
+    }
+
+    if(testNum >= i)
+    {
+        SF_OSAL_printf("Unknown test\n");
+        return 0;
+    }
+
+    
+    retval = MfgTest::MFG_TEST_TABLE[testNum]();
+    SF_OSAL_printf("%s returned %d\n", testName[testNum], retval);
+    return !retval;
 }

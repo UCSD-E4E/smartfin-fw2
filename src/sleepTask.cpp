@@ -22,17 +22,17 @@ void SleepTask::init(void)
 
     if(pSystemDesc->flags->batteryLow)
     {
-        this->bootBehavior = BOOT_BEHAVIOR_NORMAL;
+        SleepTask::bootBehavior = BOOT_BEHAVIOR_NORMAL;
     }
 
     // commit EEPROM before we bring down everything
-    pSystemDesc->nvram->put(NVRAM::BOOT_BEHAVIOR, this->bootBehavior);
-    pSystemDesc->nvram->put(NVRAM::NVRAM_VALID, true);
+    pSystemDesc->pNvram->put(NVRAM::BOOT_BEHAVIOR, SleepTask::bootBehavior);
+    pSystemDesc->pNvram->put(NVRAM::NVRAM_VALID, true);
 
     // bring down the system safely
     SYS_deinitSys();
 
-    switch(this->bootBehavior)
+    switch(SleepTask::bootBehavior)
     {
         case BOOT_BEHAVIOR_UPLOAD_REATTEMPT:
             if(digitalRead(WKP_PIN) == HIGH)
@@ -69,7 +69,7 @@ void SleepTask::exit(void)
 void SleepTask::loadBootBehavior(void)
 {
     uint8_t bootValid = 0;
-    if(!pSystemDesc->nvram->get(NVRAM::NVRAM_VALID, bootValid))
+    if(!pSystemDesc->pNvram->get(NVRAM::NVRAM_VALID, bootValid))
     {
         SleepTask::bootBehavior = SleepTask::BOOT_BEHAVIOR_NORMAL;
         return;
@@ -77,13 +77,13 @@ void SleepTask::loadBootBehavior(void)
 
     if(bootValid)
     {
-        if(!pSystemDesc->nvram->get(NVRAM::BOOT_BEHAVIOR, SleepTask::bootBehavior))
+        if(!pSystemDesc->pNvram->get(NVRAM::BOOT_BEHAVIOR, SleepTask::bootBehavior))
         {
             SleepTask::bootBehavior = SleepTask::BOOT_BEHAVIOR_NORMAL;
             return;
         }
         bootValid = 0;
-        if(!pSystemDesc->nvram->put(NVRAM::NVRAM_VALID, bootValid))
+        if(!pSystemDesc->pNvram->put(NVRAM::NVRAM_VALID, bootValid))
         {
             SF_OSAL_printf("Failed to clear boot flag\n");
             return;
@@ -104,4 +104,6 @@ SleepTask::BOOT_BEHAVIOR_e SleepTask::getBootBehavior(void)
 void SleepTask::setBootBehavior(SleepTask::BOOT_BEHAVIOR_e behavior)
 {
     SleepTask::bootBehavior = behavior;
+    pSystemDesc->pNvram->put(NVRAM::BOOT_BEHAVIOR, SleepTask::bootBehavior);
+    pSystemDesc->pNvram->put(NVRAM::NVRAM_VALID, true);
 }

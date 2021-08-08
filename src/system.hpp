@@ -1,7 +1,7 @@
 #ifndef __SYSTEM_HPP__
 #define __SYSTEM_HPP__
 
-#include "Particle.h"
+#include <Particle.h>
 #include "SpiffsParticleRK.h"
 #include "nvram.hpp"
 #include "waterSensor.hpp"
@@ -30,8 +30,8 @@ typedef struct SystemDesc_
 {
     SpiffsParticle* pFileSystem;
     PMIC* pmic;
-    FuelGauge* battery;
-    NVRAM* nvram;
+    FuelGauge* pBattery;
+    NVRAM* pNvram;
     const char* deviceID;
     WaterSensor* pWaterSensor;
     SFLed* pBatteryLED;
@@ -44,6 +44,7 @@ typedef struct SystemDesc_
     ICM20648* pIMU;
     tmpSensor* pTempSensor;
     AK09916* pCompass;
+    TimeClass* pTime;
     const SystemFlags_t* flags;
 }SystemDesc_t;
 

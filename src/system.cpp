@@ -44,6 +44,7 @@ static int SYS_initWaterSensor(void);
 static int SYS_initLEDs(void);
 static int SYS_initTasks(void);
 static int SYS_initSensors(void);
+static int SYS_initTimebase(void);
 
 int SYS_initSys(void)
 {
@@ -61,6 +62,7 @@ int SYS_initSys(void)
     SYS_initLEDs();
     SYS_initTasks();
     SYS_initSensors();
+    SYS_initTimebase();
     return 1;
 }
 
@@ -89,7 +91,7 @@ static int SYS_initPMIC(void)
     pmic.setChargeVoltage(SF_CHARGE_VOLTAGE);
     pmic.setChargeCurrent(0, 0, 0, 0, 0, 0);
     systemDesc.pmic = &pmic;
-    systemDesc.battery = &battery;
+    systemDesc.pBattery = &battery;
     return 1;
 }
 
@@ -97,7 +99,7 @@ static int SYS_initNVRAM(void)
 {
     NVRAM& nvram = NVRAM::getInstance();
 
-    systemDesc.nvram = &nvram;
+    systemDesc.pNvram = &nvram;
 
     return 1;
 }
@@ -105,6 +107,8 @@ static int SYS_initWaterSensor(void)
 {
     pinMode(WATER_DETECT_EN_PIN, OUTPUT);
     pinMode(WATER_DETECT_PIN, INPUT);
+    pinMode(WATER_MFG_TEST_EN, OUTPUT);
+    digitalWrite(WATER_MFG_TEST_EN, LOW);
     systemDesc.pWaterSensor = &waterSensor;
     return 1;
 }
@@ -139,7 +143,7 @@ static int SYS_initTasks(void)
     systemDesc.pChargerCheck = &chargerTimer;
     systemDesc.pWaterCheck = &waterTimer;
     batteryMonitorTimer.start();
-    waterTimer.start();
+    // waterTimer.start();
     return 1;
 }
 
@@ -218,8 +222,14 @@ static int SYS_initSensors(void)
 
 static void SYS_batteryTask(void)
 {
-    if(systemDesc.battery->getVCell() < SF_BATTERY_SHUTDOWN_VOLTAGE)
+    if(systemDesc.pBattery->getVCell() < SF_BATTERY_SHUTDOWN_VOLTAGE)
     {
         systemFlags.batteryLow = true;
     }
+}
+
+static int SYS_initTimebase(void)
+{
+    pSystemDesc->pTime = &Time;
+    return 1;
 }

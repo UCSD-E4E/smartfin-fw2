@@ -75,10 +75,10 @@ int MAX31725::read_cfg_reg(uint8_t *value)
             return MAX31725_NO_ERROR;
         } else {
             printf(
-                "%s: failed to read data: ret: %d\r\n", __func__, ret);
+                "%s: failed to read data: ret: %ld\r\n", __func__, ret);
             }
     } else {                
-        printf("%s: failed to write to Register Select: ret: %d\r\n",
+        printf("%s: failed to write to Register Select: ret: %ld\r\n",
             __func__, ret);
     }
     return MAX31725_ERROR;
@@ -105,10 +105,10 @@ int MAX31725::read_reg16(int16_t *value, char reg)
                 return MAX31725_NO_ERROR;
             } else {
                 printf(
-                    "%s: failed to read data: ret: %d\r\n", __func__, ret);
+                    "%s: failed to read data: ret: %ld\r\n", __func__, ret);
             }
         } else {                
-            printf("%s: failed to write to Register Select: ret: %d\r\n",
+            printf("%s: failed to write to Register Select: ret: %ld\r\n",
                 __func__, ret);
         }
     } else {
@@ -154,7 +154,7 @@ int MAX31725::write_reg16(int16_t value, char reg)
         if (ret == 0) {
             return MAX31725_NO_ERROR;
         } else {
-            printf("%s: I2C write error %d\r\n",__func__, ret);
+            printf("%s: I2C write error %ld\r\n",__func__, ret);
             return MAX31725_ERROR;
         }
     } else {
@@ -180,7 +180,7 @@ int MAX31725::write_cfg_reg(uint8_t cfg)
 
         return MAX31725_NO_ERROR;
     } else {
-        printf("%s: I2C write error %d\r\n",__func__, ret);
+        printf("%s: I2C write error %ld\r\n",__func__, ret);
         return MAX31725_ERROR;
     }
 }

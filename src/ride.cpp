@@ -481,7 +481,7 @@ static void SS_ensemble07Func(DeploymentSchedule_t* pDeployment)
     #pragma pack(pop)
 
     // obtain measurements
-    battVoltage = pSystemDesc->battery->getVCell();
+    battVoltage = pSystemDesc->pBattery->getVCell();
 
     // accumulate measurements
     pData->battVoltage += battVoltage;

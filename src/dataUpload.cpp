@@ -39,8 +39,8 @@ STATES_e DataUpload::run(void)
     {
         // Power is most important.  If we don't have enough power, don't even
         // peek at the recorder
-        SF_OSAL_printf("Voltage: %f\n", pSystemDesc->battery->getVCell());
-        if(pSystemDesc->battery->getVCell() < SF_BATTERY_UPLOAD_VOLTAGE)
+        SF_OSAL_printf("Voltage: %f\n", pSystemDesc->pBattery->getVCell());
+        if(pSystemDesc->pBattery->getVCell() < SF_BATTERY_UPLOAD_VOLTAGE)
         {
             SF_OSAL_printf("Battery low\n");
             return STATE_DEEP_SLEEP;
@@ -62,11 +62,11 @@ STATES_e DataUpload::run(void)
             {
                 SleepTask::setBootBehavior(SleepTask::BOOT_BEHAVIOR_UPLOAD_REATTEMPT);
                 uploadAttempts = DU_UPLOAD_MAX_REATTEMPTS;
-                pSystemDesc->nvram->put(NVRAM::UPLOAD_REATTEMPTS, uploadAttempts);
+                pSystemDesc->pNvram->put(NVRAM::UPLOAD_REATTEMPTS, uploadAttempts);
             }
             else
             {
-                pSystemDesc->nvram->get(NVRAM::UPLOAD_REATTEMPTS, uploadAttempts);
+                pSystemDesc->pNvram->get(NVRAM::UPLOAD_REATTEMPTS, uploadAttempts);
                 uploadAttempts--;
                 if(uploadAttempts == 0)
                 {
@@ -75,7 +75,7 @@ STATES_e DataUpload::run(void)
                 else
                 {
                     SleepTask::setBootBehavior(SleepTask::BOOT_BEHAVIOR_UPLOAD_REATTEMPT);
-                    pSystemDesc->nvram->put(NVRAM::UPLOAD_REATTEMPTS, uploadAttempts);
+                    pSystemDesc->pNvram->put(NVRAM::UPLOAD_REATTEMPTS, uploadAttempts);
                 }
             }
             return STATE_DEEP_SLEEP;
