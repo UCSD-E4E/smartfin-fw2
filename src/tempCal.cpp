@@ -7,7 +7,7 @@
 #include "ride.hpp"
 #include "ensembleTypes.hpp"
 #include "utils.hpp"
-
+#include "scheduler.hpp"
 
 typedef struct Ensemble08_eventData_
 {
@@ -33,14 +33,11 @@ static void SS_ensemble07Init(DeploymentSchedule_t* pDeployment);
 static void SS_ensemble08Func(DeploymentSchedule_t* pDeployment);
 static void SS_ensemble08Init(DeploymentSchedule_t* pDeployment);
 
-static void getNextEvent(DeploymentSchedule_t ** pEventPtr, size_t* pNextTime);
-static void initializeSchedule(system_tick_t startTime);
-
 DeploymentSchedule_t calibrateSchedule[] =
 {
-    {&SS_ensemble07Func, &SS_ensemble07Init, 1, 0, 10000, 0, 0, &ensemble07Data},
-    {&SS_ensemble08Func, &SS_ensemble08Init, 1, 0, 1000, 0, 0, &ensemble08Data},
-    {NULL, NULL, 0, 0, 0, 0, 0, NULL}
+    {&SS_ensemble07Func, &SS_ensemble07Init, 1, 0, 10000, UINT32_MAX, 0, 0, 0, &ensemble07Data},
+    {&SS_ensemble08Func, &SS_ensemble08Init, 1, 0, 1000, UINT32_MAX, 0, 0, 0, &ensemble08Data},
+    {NULL, NULL, 0, 0, 0, 0, 0, 0, 0, NULL}
 };
 
 void TemperatureCal::init(void)
@@ -51,90 +48,46 @@ void TemperatureCal::init(void)
     TCAL_ledStatus.setPriority(TCAL_RGB_LED_PRIORITY);
     TCAL_ledStatus.setActive();
 
-    this->dataFile = pSystemDesc->pFileSystem->openFile("TMP116_CAL", SPIFFS_O_RDWR | SPIFFS_O_CREAT | SPIFFS_APPEND);
-
     pSystemDesc->pTempSensor->init();
 
     pSystemDesc->pNvram->get(NVRAM::TMP116_CAL_DATA_COLLECTION_PERIOD_SEC, this->measurementTime_s);
     pSystemDesc->pNvram->get(NVRAM::TMP116_CAL_CYCLE_PERIOD_SEC, this->collectionPeriod_s);
     pSystemDesc->pNvram->get(NVRAM::TMP116_CAL_ATTEMPTS_TOTAL, this->calibrationCycles);
 
+    calibrateSchedule[0].nMeasurements = this->calibrationCycles;
+    calibrateSchedule[1].nMeasurements = this->calibrationCycles;
+
     SF_OSAL_printf("Entering STATE_CALIBRATE\n");
     this->startTime = millis();
-    initializeSchedule(this->startTime);
+    pSystemDesc->pRecorder->openSession(".TMP116_CAL");
+    if(!pSystemDesc->pTempSensor->init())
+    {
+        SF_OSAL_printf("Temp Fail\n");
+    }
+    SCH_initializeSchedule(calibrateSchedule, this->startTime);
 }
 STATES_e TemperatureCal::run(void)
 {
     DeploymentSchedule_t* pNextEvent = NULL;
     size_t nextEventTime;
-    getNextEvent(&pNextEvent, &nextEventTime);
+    SCH_getNextEvent(calibrateSchedule, &pNextEvent, &nextEventTime);
     while(millis() < nextEventTime)
     {
         continue;
     }
     pNextEvent->func(pNextEvent);
     pNextEvent->lastExecuteTime = nextEventTime;
+    pNextEvent->measurementCount++;
     return STATE_DEEP_SLEEP;
 }
 void TemperatureCal::exit(void)
 {
+    pSystemDesc->pRecorder->closeSession();
     TCAL_ledStatus.setActive(false);
+    pSystemDesc->pTempSensor->stop();
+
 }
 
-static void getNextEvent(DeploymentSchedule_t ** pEventPtr, size_t* pNextTime)
-{
-    size_t earliestExecution = 0;
-    uint32_t earliestEvent = 0;
-    size_t timeToCompare;
-    uint32_t i = 0;
-
-    *pEventPtr = 0;
-    *pNextTime = 0;
-
-    for(i = 0; calibrateSchedule[i].func; i++)
-    {
-        if(calibrateSchedule[i].lastExecuteTime == 0)
-        {
-            timeToCompare = calibrateSchedule[i].startTime + calibrateSchedule[i].ensembleDelay;
-        }
-        else
-        {
-            if(calibrateSchedule[i].ensembleInterval != UINT32_MAX)
-            {
-                timeToCompare = calibrateSchedule[i].lastExecuteTime + calibrateSchedule[i].ensembleInterval;
-            }
-            else
-            {
-                continue;
-            }
-        }
-        // SF_OSAL_printf("Event %d nextExecute: %d\n", i, timeToCompare);
-
-        if(earliestExecution == 0)
-        {
-            earliestExecution = timeToCompare;
-        }
-
-        if(timeToCompare < earliestExecution)
-        {
-            earliestExecution = timeToCompare;
-            earliestEvent = i;
-        }
-    }
-    *pNextTime = earliestExecution;
-    *pEventPtr = calibrateSchedule + earliestEvent;
-}
-
-static void initializeSchedule(system_tick_t startTime)
-{
-    DeploymentSchedule_t* pDeployment;
-    for(pDeployment = calibrateSchedule; pDeployment->init; pDeployment++)
-    {
-        pDeployment->startTime = startTime;
-        pDeployment->lastExecuteTime = 0;
-        pDeployment->init(pDeployment);
-    }
-}
 static void SS_ensemble07Init(DeploymentSchedule_t* pDeployment)
 {
     memset(&ensemble07Data, 0, sizeof(Ensemble07_eventData_t));

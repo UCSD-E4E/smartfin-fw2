@@ -36,12 +36,20 @@ class Recorder
     };
 
     private:
+    const char* uploadIgnorePatterns[2] = 
+    {
+        "TMP116",
+        NULL
+    };
     char currentSessionName[REC_SESSION_NAME_MAX_LEN + 1];
+    char lastSessionName[REC_SESSION_NAME_MAX_LEN + 1];
     uint8_t dataBuffer[REC_MEMORY_BUFFER_SIZE];
     uint32_t dataIdx;
     Deployment* pSession;
 
     void getSessionName(char* fileName);
+
+    int openLastSession(Deployment &session, char* pName);
 };
 
 #endif

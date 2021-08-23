@@ -19,5 +19,15 @@
         "streambuf": "cpp"
     },
     "particle.firmwareVersion": "3.0.0",
-    "particle.targetPlatform": "electron"
+    "particle.targetPlatform": "electron",
+    "C_Cpp.vcFormat.newLine.scopeBracesOnSeparateLines": true,
+    "C_Cpp.vcFormat.wrap.preserveBlocks": "never",
+    "C_Cpp.clang_format_fallbackStyle": "{ ColumnLimit: 80 }",
+    "C_Cpp.vcFormat.indent.multiLineRelativeTo": "statementBegin",
+    "C_Cpp.vcFormat.newLine.beforeOpenBrace.block": "newLine",
+    "C_Cpp.vcFormat.newLine.beforeOpenBrace.namespace": "newLine",
+    "C_Cpp.vcFormat.newLine.beforeOpenBrace.type": "newLine",
+    "C_Cpp.vcFormat.indent.braces": true,
+    "C_Cpp.vcFormat.space.beforeBlockOpenBrace": false
+
 }

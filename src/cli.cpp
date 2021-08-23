@@ -278,20 +278,38 @@ static void CLI_doMakeTestFiles(void)
     char fname[31];
     const char *const fnameFmt = "t%d.txt";
     const int nFiles = 3;
-    const int nBytes = 496*3 + 3;
+    const int nBytes = 496;
+    uint8_t data[nBytes];
     int i, j;
+
+    for(i = 0; i < nBytes; i++)
+    {
+        data[i] = i & 0xFF;
+    }
 
     for (i = 0; i < nFiles; i++)
     {
+        memset(fname, 0, 31);
         snprintf(fname, 31, fnameFmt, i);
         bin_file = pSystemDesc->pFileSystem->openFile(fname, SPIFFS_O_RDWR | SPIFFS_O_CREAT);
+        memcpy(data, fname, 31);
         for (j = 0; j < nBytes; j++)
         {
-            bin_file.write(j & 0xFF);
+            bin_file.write(data[j]);
         }
         bin_file.flush();
         bin_file.close();
     }
+
+    sprintf(fname, ".test.txt");
+    memcpy(data, fname, 31);
+    bin_file = pSystemDesc->pFileSystem->openFile(fname, SPIFFS_O_RDWR | SPIFFS_O_CREAT);
+    for (j = 0; j < nBytes; j++)
+    {
+        bin_file.write(data[j]);
+    }
+    bin_file.flush();
+    bin_file.close();
     SF_OSAL_printf("Done making %d temp files!\n", nFiles);
 }
 

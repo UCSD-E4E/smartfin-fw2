@@ -19,7 +19,6 @@ class TemperatureCal : public Task {
     STATES_e run(void);
     void exit(void);
     private:
-    SpiffsParticleFile dataFile;
     uint32_t collectionPeriod_s;
     uint32_t measurementTime_s;
     uint8_t calibrationCycles;

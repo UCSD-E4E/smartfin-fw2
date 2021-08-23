@@ -11,11 +11,9 @@
 #include "sleepTask.hpp"
 #include "utils.hpp"
 #include "vers.hpp"
+#include "scheduler.hpp"
 
 static void RIDE_setFileName(system_tick_t startTime);
-
-static void initializeSchedule(system_tick_t startTime);
-static void getNextEvent(DeploymentSchedule_t** pEventPtr, size_t* pNextTime);
 
 static void SS_ensemble10Func(DeploymentSchedule_t* pDeployment);
 static void SS_ensemble10Init(DeploymentSchedule_t* pDeployment);
@@ -61,11 +59,11 @@ static Ensemble08_eventData_t ensemble08Data;
 
 DeploymentSchedule_t deploymentSchedule[] = 
 {
-    {&SS_ensemble10Func, &SS_ensemble10Init, 1, 0, 1000, 0, 0, &ensemble10Data},
-    {&SS_ensemble07Func, &SS_ensemble07Init, 1, 0, 10000, 0, 0, &ensemble07Data},
-    {&SS_ensemble08Func, &SS_ensemble08Init, 1, 0, UINT32_MAX, 0, 0, &ensemble08Data},
-    {&SS_fwVerFunc, &SS_fwVerInit, 1, 0, UINT32_MAX, 0, 0, NULL},
-    {NULL, NULL, 0, 0, 0, 0, 0, NULL}
+    {&SS_ensemble10Func, &SS_ensemble10Init, 1, 0, 1000, UINT32_MAX, 0, 0, 0, &ensemble10Data},
+    {&SS_ensemble07Func, &SS_ensemble07Init, 1, 0, 10000, UINT32_MAX, 0, 0, 0, &ensemble07Data},
+    {&SS_ensemble08Func, &SS_ensemble08Init, 1, 0, UINT32_MAX, UINT32_MAX, 0, 0, 0, &ensemble08Data},
+    {&SS_fwVerFunc, &SS_fwVerInit, 1, 0, UINT32_MAX, UINT32_MAX, 0, 0, 0, NULL},
+    {NULL, NULL, 0, 0, 0, 0, 0, 0, 0, NULL}
 };
 
 
@@ -193,7 +191,7 @@ void RideTask::init(void)
 {
     SF_OSAL_printf("Entering STATE_DEPLOYED\n");
     this->startTime = millis();
-    initializeSchedule(this->startTime);
+    SCH_initializeSchedule(deploymentSchedule, this->startTime);
     pSystemDesc->pRecorder->openSession(NULL);
 
     // initialize sensors
@@ -252,13 +250,14 @@ STATES_e RideTask::run(void)
             this->ledStatus.setActive();
         }
         
-        getNextEvent(&pNextEvent, &nextEventTime);
+        SCH_getNextEvent(deploymentSchedule, &pNextEvent, &nextEventTime);
         while(millis() < nextEventTime)
         {
             continue;
         }
         pNextEvent->func(pNextEvent);
         pNextEvent->lastExecuteTime = nextEventTime;
+        pNextEvent->measurementCount++;
 
         if(pSystemDesc->pWaterSensor->getLastStatus() == WATER_SENSOR_LOW_STATE)
         {
@@ -285,61 +284,6 @@ void RideTask::exit(void)
     pSystemDesc->pIMU->close();
     pSystemDesc->pGPS->gpsModuleStop();
 
-}
-
-static void initializeSchedule(system_tick_t startTime)
-{
-    DeploymentSchedule_t* pDeployment;
-    for(pDeployment = deploymentSchedule; pDeployment->init; pDeployment++)
-    {
-        pDeployment->startTime = startTime;
-        pDeployment->lastExecuteTime = 0;
-        pDeployment->init(pDeployment);
-    }
-}
-
-static void getNextEvent(DeploymentSchedule_t ** pEventPtr, size_t* pNextTime)
-{
-    size_t earliestExecution = 0;
-    uint32_t earliestEvent = 0;
-    size_t timeToCompare;
-    uint32_t i = 0;
-
-    *pEventPtr = 0;
-    *pNextTime = 0;
-
-    for(i = 0; deploymentSchedule[i].func; i++)
-    {
-        if(deploymentSchedule[i].lastExecuteTime == 0)
-        {
-            timeToCompare = deploymentSchedule[i].startTime + deploymentSchedule[i].ensembleDelay;
-        }
-        else
-        {
-            if(deploymentSchedule[i].ensembleInterval != UINT32_MAX)
-            {
-                timeToCompare = deploymentSchedule[i].lastExecuteTime + deploymentSchedule[i].ensembleInterval;
-            }
-            else
-            {
-                continue;
-            }
-        }
-        // SF_OSAL_printf("Event %d nextExecute: %d\n", i, timeToCompare);
-
-        if(earliestExecution == 0)
-        {
-            earliestExecution = timeToCompare;
-        }
-
-        if(timeToCompare < earliestExecution)
-        {
-            earliestExecution = timeToCompare;
-            earliestEvent = i;
-        }
-    }
-    *pNextTime = earliestExecution;
-    *pEventPtr = deploymentSchedule + earliestEvent;
 }
 
 static void SS_ensemble10Init(DeploymentSchedule_t* pDeployment)

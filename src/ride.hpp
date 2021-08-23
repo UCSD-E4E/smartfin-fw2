@@ -43,45 +43,4 @@ class RideTask : public Task
 };
 
 
-typedef struct DeploymentSchedule_ DeploymentSchedule_t;
-
-/**
- * @brief Ensemble function.
- * 
- * This function executes once to update the ensemble state.  This should update
- * the accumulators with a new measurement.  If the accumulators have 
- * accumulated the proper amount of data, this function should then record the 
- * proper data.
- * 
- * Essentially, this will be called every ensembleInterval ms after 
- * ensembleDelay ms from the start of the deployment.
- */
-typedef void (*EnsembleFunction)(DeploymentSchedule_t* pDeployment); 
-
-/**
- * @brief Ensemble initialization function.
- * 
- * This function is executed once when all of the 
- * 
- */
-typedef void (*EnsembleInit)(DeploymentSchedule_t* pDeployment);
-
-struct DeploymentSchedule_
-{
-    const EnsembleFunction func;
-    const EnsembleInit init;
-    const size_t measurementsToAccumulate;
-    const uint32_t ensembleDelay;
-    /**
-     * @brief Interval between ensembles in ms
-     * 
-     * Set to UINT32_MAX to execute only once.
-     * 
-     */
-    const uint32_t ensembleInterval;
-    size_t lastExecuteTime;
-    system_tick_t startTime;
-
-    void* pData;
-};
 #endif
