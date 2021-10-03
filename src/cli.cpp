@@ -686,7 +686,7 @@ static void CLI_doCalibrateMode(void)
     SF_OSAL_printf("Cycle time = %lu seconds\n", cycleTime);
     pSystemDesc->pNvram->put(NVRAM::TMP116_CAL_CYCLE_PERIOD_SEC, cycleTime);
 
-    SF_OSAL_printf("Please enter the measurement time in seconds (total time taking measurements each cycle)\n");
+    SF_OSAL_printf("Please enter the measurement time in seconds (total time taking measurements each cycle): ");
     getline(userInput, 32);
     if(1 != sscanf(userInput, "%lu", &dataCollectionPeriod))
     {
