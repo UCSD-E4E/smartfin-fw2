@@ -89,11 +89,6 @@ STATES_e TemperatureCal::run(void)
     FLOG_AddError(FLOG_CAL_LIMIT, this->burstLimit);
     for(burstIdx = 0; burstIdx < this->burstLimit; burstIdx++)
     {
-        TCAL_ledStatus.setColor(TCAL_RGB_LED_COLOR);
-        TCAL_ledStatus.setPattern(TCAL_RGB_LED_PATTERN);
-        TCAL_ledStatus.setPeriod(TCAL_RGB_LED_PERIOD);
-        TCAL_ledStatus.setPriority(TCAL_RGB_LED_PRIORITY);
-        TCAL_ledStatus.setActive();
         burstStart = millis();
         SF_OSAL_printf("Burst %u at %ld\n", burstIdx, burstStart);
         nextBurst = burstStart + this->burstTime * 1e3;
