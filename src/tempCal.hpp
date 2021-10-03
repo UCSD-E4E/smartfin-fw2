@@ -19,9 +19,9 @@ class TemperatureCal : public Task {
     STATES_e run(void);
     void exit(void);
     private:
-    uint32_t collectionPeriod_s;
+    uint32_t burstTime;
     uint32_t measurementTime_s;
-    uint8_t calibrationCycles;
+    uint8_t burstLimit;
     system_tick_t startTime;
 };
 

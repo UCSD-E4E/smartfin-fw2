@@ -23,6 +23,7 @@
 #include "vers.hpp"
 #include "flog.hpp"
 #include "mfgTest.hpp"
+#include "tempCal.hpp"
 // PRODUCT_VERSION(FW_MAJOR_VERSION << 8 | FW_MINOR_VERSION)
 
 #define SF_DEBUG
@@ -40,6 +41,7 @@ static ChargeTask chargeTask;
 static RideInitTask rideInitTask;
 static RideTask rideTask;
 static MfgTest mfgTask;
+static TemperatureCal calTask;
 
 static StateMachine_t stateMachine[] = 
 {
@@ -50,6 +52,7 @@ static StateMachine_t stateMachine[] =
   {STATE_SESSION_INIT, &rideInitTask},
   {STATE_DEPLOYED, &rideTask},
   {STATE_MFG_TEST, &mfgTask},
+  {STATE_TMP_CAL, &calTask},
   {STATE_NULL, NULL}
 };
 
@@ -201,6 +204,7 @@ static StateMachine_t* findState(STATES_e state)
       return pStates;
     }
   }
+  FLOG_AddError(FLOG_SYS_UNKNOWNSTATE, state);
   return NULL;
 }
 

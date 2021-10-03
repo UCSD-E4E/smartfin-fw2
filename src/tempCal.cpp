@@ -8,6 +8,7 @@
 #include "ensembleTypes.hpp"
 #include "utils.hpp"
 #include "scheduler.hpp"
+#include "flog.hpp"
 
 typedef struct Ensemble08_eventData_
 {
@@ -42,6 +43,7 @@ DeploymentSchedule_t calibrateSchedule[] =
 
 void TemperatureCal::init(void)
 {
+    FLOG_AddError(FLOG_CAL_INIT, 0);
     TCAL_ledStatus.setColor(TCAL_RGB_LED_COLOR);
     TCAL_ledStatus.setPattern(TCAL_RGB_LED_PATTERN);
     TCAL_ledStatus.setPeriod(TCAL_RGB_LED_PERIOD);
@@ -51,11 +53,11 @@ void TemperatureCal::init(void)
     pSystemDesc->pTempSensor->init();
 
     pSystemDesc->pNvram->get(NVRAM::TMP116_CAL_DATA_COLLECTION_PERIOD_SEC, this->measurementTime_s);
-    pSystemDesc->pNvram->get(NVRAM::TMP116_CAL_CYCLE_PERIOD_SEC, this->collectionPeriod_s);
-    pSystemDesc->pNvram->get(NVRAM::TMP116_CAL_ATTEMPTS_TOTAL, this->calibrationCycles);
+    pSystemDesc->pNvram->get(NVRAM::TMP116_CAL_CYCLE_PERIOD_SEC, this->burstTime);
+    pSystemDesc->pNvram->get(NVRAM::TMP116_CAL_ATTEMPTS_TOTAL, this->burstLimit);
 
-    calibrateSchedule[0].nMeasurements = this->calibrationCycles;
-    calibrateSchedule[1].nMeasurements = this->calibrationCycles;
+    calibrateSchedule[0].nMeasurements = this->burstLimit;
+    calibrateSchedule[1].nMeasurements = this->burstLimit;
 
     SF_OSAL_printf("Entering STATE_CALIBRATE\n");
     this->startTime = millis();
@@ -68,20 +70,50 @@ void TemperatureCal::init(void)
 }
 STATES_e TemperatureCal::run(void)
 {
-    DeploymentSchedule_t* pNextEvent = NULL;
-    size_t nextEventTime;
-    SCH_getNextEvent(calibrateSchedule, &pNextEvent, &nextEventTime);
-    while(millis() < nextEventTime)
+    // DeploymentSchedule_t* pNextEvent = NULL;
+    // size_t nextEventTime;
+    // SCH_getNextEvent(calibrateSchedule, &pNextEvent, &nextEventTime);
+    // while(millis() < nextEventTime)
+    // {
+    //     continue;
+    // }
+    // pNextEvent->func(pNextEvent);
+    // pNextEvent->lastExecuteTime = nextEventTime;
+    // pNextEvent->measurementCount++;
+    uint32_t burstIdx;
+    system_tick_t burstStart;
+    system_tick_t nextBurst;
+    system_tick_t burstEnd;
+    uint32_t sleepTime;
+    FLOG_AddError(FLOG_CAL_START_RUN, 0);
+    FLOG_AddError(FLOG_CAL_LIMIT, this->burstLimit);
+    for(burstIdx = 0; burstIdx < this->burstLimit; burstIdx++)
     {
-        continue;
+        TCAL_ledStatus.setColor(TCAL_RGB_LED_COLOR);
+        TCAL_ledStatus.setPattern(TCAL_RGB_LED_PATTERN);
+        TCAL_ledStatus.setPeriod(TCAL_RGB_LED_PERIOD);
+        TCAL_ledStatus.setPriority(TCAL_RGB_LED_PRIORITY);
+        TCAL_ledStatus.setActive();
+        burstStart = millis();
+        SF_OSAL_printf("Burst %u at %ld\n", burstIdx, burstStart);
+        nextBurst = burstStart + this->burstTime * 1e3;
+        delay(this->measurementTime_s * 1e3);
+        
+        FLOG_AddError(FLOG_CAL_ACTION, burstIdx);
+        burstEnd = millis();
+        sleepTime = (nextBurst - burstEnd);
+        FLOG_AddError(FLOG_CAL_SLEEP, sleepTime);
+        SystemSleepConfiguration sleepConfig;
+        sleepConfig.mode(SystemSleepMode::ULTRA_LOW_POWER);
+        sleepConfig.duration(sleepTime);
+        System.sleep(sleepConfig);
     }
-    pNextEvent->func(pNextEvent);
-    pNextEvent->lastExecuteTime = nextEventTime;
-    pNextEvent->measurementCount++;
-    return STATE_DEEP_SLEEP;
+    FLOG_AddError(FLOG_CAL_DONE, 0);
+    return STATE_CLI;
 }
 void TemperatureCal::exit(void)
 {
+    FLOG_AddError(FLOG_CAL_EXIT, 0);
     pSystemDesc->pRecorder->closeSession();
     TCAL_ledStatus.setActive(false);
     pSystemDesc->pTempSensor->stop();

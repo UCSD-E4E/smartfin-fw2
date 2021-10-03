@@ -37,6 +37,13 @@ const FLOG_Message_t FLOG_Message[] = {
     {FLOG_SYS_INITSTATE, "Initializing State"},
     {FLOG_SYS_EXECSTATE, "Executing State Body"},
     {FLOG_SYS_EXITSTATE, "Exiting State"},
+    {FLOG_CAL_ACTION, "Calibrate Action"},
+    {FLOG_CAL_INIT, "Calibrate Initialization"},
+    {FLOG_CAL_START_RUN, "Calibrate Start RUN"},
+    {FLOG_CAL_LIMIT, "Calibrate Limit of Cycles"},
+    {FLOG_CAL_DONE, "Calibration complete"},
+    {FLOG_CAL_EXIT, "Calbiration Exit"},
+    {FLOG_CAL_SLEEP, "Calibration Sleep"},
     {FLOG_NULL, NULL}
 };
 
