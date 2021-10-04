@@ -1,4 +1,5 @@
 #include "scheduler.hpp"
+#include "conio.hpp"
 
 void SCH_initializeSchedule(DeploymentSchedule_t* pDeployment, system_tick_t startTime)
 {

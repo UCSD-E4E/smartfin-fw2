@@ -9,6 +9,7 @@
 #include "utils.hpp"
 #include "scheduler.hpp"
 #include "flog.hpp"
+#include "sleepTask.hpp"
 
 typedef struct Ensemble08_eventData_
 {
@@ -36,6 +37,7 @@ static void SS_ensemble08Init(DeploymentSchedule_t* pDeployment);
 
 DeploymentSchedule_t calibrateSchedule[] =
 {
+    // Func              init               acc del int,  total_meas  las start count members
     {&SS_ensemble07Func, &SS_ensemble07Init, 1, 0, 10000, UINT32_MAX, 0, 0, 0, &ensemble07Data},
     {&SS_ensemble08Func, &SS_ensemble08Init, 1, 0, 1000, UINT32_MAX, 0, 0, 0, &ensemble08Data},
     {NULL, NULL, 0, 0, 0, 0, 0, 0, 0, NULL}
@@ -60,31 +62,24 @@ void TemperatureCal::init(void)
     calibrateSchedule[1].nMeasurements = this->burstLimit;
 
     SF_OSAL_printf("Entering STATE_CALIBRATE\n");
-    this->startTime = millis();
     pSystemDesc->pRecorder->openSession(".TMP116_CAL");
     if(!pSystemDesc->pTempSensor->init())
     {
         SF_OSAL_printf("Temp Fail\n");
     }
-    SCH_initializeSchedule(calibrateSchedule, this->startTime);
+    SleepTask::setBootBehavior(SleepTask::BOOT_BEHAVIOR_NORMAL);
+
 }
 STATES_e TemperatureCal::run(void)
 {
-    // DeploymentSchedule_t* pNextEvent = NULL;
-    // size_t nextEventTime;
-    // SCH_getNextEvent(calibrateSchedule, &pNextEvent, &nextEventTime);
-    // while(millis() < nextEventTime)
-    // {
-    //     continue;
-    // }
-    // pNextEvent->func(pNextEvent);
-    // pNextEvent->lastExecuteTime = nextEventTime;
-    // pNextEvent->measurementCount++;
+    DeploymentSchedule_t* pNextEvent = NULL;
+    size_t nextEventTime;
     uint32_t burstIdx;
     system_tick_t burstStart;
     system_tick_t nextBurst;
     system_tick_t burstEnd;
-    uint32_t sleepTime;
+    system_tick_t sleepTime;
+    
     FLOG_AddError(FLOG_CAL_START_RUN, 0);
     FLOG_AddError(FLOG_CAL_LIMIT, this->burstLimit);
     for(burstIdx = 0; burstIdx < this->burstLimit; burstIdx++)
@@ -92,14 +87,28 @@ STATES_e TemperatureCal::run(void)
         burstStart = millis();
         SF_OSAL_printf("Burst %u at %ld\n", burstIdx, burstStart);
         nextBurst = burstStart + this->burstTime * 1e3;
-        delay(this->measurementTime_s * 1e3);
+        this->startTime = millis();
+        FLOG_AddError(FLOG_CAL_BURST, burstIdx);
+        SCH_initializeSchedule(calibrateSchedule, this->startTime);
+        while(millis() - burstStart < this->measurementTime_s * 1e3)
+        {
+            SCH_getNextEvent(calibrateSchedule, &pNextEvent, &nextEventTime);
+            while(millis() < nextEventTime)
+            {
+            }
+
+            pNextEvent->func(pNextEvent);
+            pNextEvent->lastExecuteTime = nextEventTime;
+            pNextEvent->measurementCount++;
+            SF_OSAL_printf("%lu\n", millis() - burstStart);
+        }
+
         
-        FLOG_AddError(FLOG_CAL_ACTION, burstIdx);
         burstEnd = millis();
         sleepTime = (nextBurst - burstEnd);
         FLOG_AddError(FLOG_CAL_SLEEP, sleepTime);
         SystemSleepConfiguration sleepConfig;
-        sleepConfig.mode(SystemSleepMode::ULTRA_LOW_POWER);
+        sleepConfig.mode(SystemSleepMode::STOP);
         sleepConfig.duration(sleepTime);
         System.sleep(sleepConfig);
     }
@@ -170,6 +179,8 @@ static void SS_ensemble08Func(DeploymentSchedule_t* pDeployment)
         Ensemble08_data_t ensData;
     }ens;
     #pragma pack(pop)
+    SF_OSAL_printf("Do Temp at %lu\n", millis());
+    FLOG_AddError(FLOG_CAL_TEMP, pDeployment->measurementCount);
 
     // obtain measurements
     temp = pSystemDesc->pTempSensor->getTemp();

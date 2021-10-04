@@ -5,9 +5,32 @@
 #include <cstdio>
 
 char SF_OSAL_printfBuffer[SF_OSAL_PRINTF_BUFLEN];
-
+OSAL_LogPriority_e _priorityLevel = OSAL_LOG_PRIO_DEBUG;
+uint32_t _componentMatch = 1;
 extern "C"
 {
+    void SF_OSAL_LogWrite(OSAL_LogPriority_e priority, uint32_t component, const char* fmt, ...)
+    {
+        va_list vargs;
+        if(priority > _priorityLevel)
+        {
+            return;
+        }
+        if(component != _componentMatch)
+        {
+            return;
+        }
+        va_start(vargs, fmt);
+        vsnprintf(SF_OSAL_printfBuffer, SF_OSAL_PRINTF_BUFLEN, fmt, vargs);
+        va_end(vargs);
+        Serial.write(SF_OSAL_printfBuffer);
+    }
+    void SF_OSAL_LogSetFilter(OSAL_LogPriority_e priorityLevel, uint32_t componentMatch)
+    {
+        _priorityLevel = priorityLevel;
+        _componentMatch = componentMatch;
+    }
+
     int SF_OSAL_printf(const char* fmt, ...)
     {
         va_list vargs;

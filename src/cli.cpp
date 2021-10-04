@@ -707,6 +707,7 @@ static void CLI_doCalibrateMode(void)
     SF_OSAL_printf("\nSystem will boot into calibration mode upon next power cycle\n");
 
     System.sleep(SLEEP_MODE_SOFTPOWEROFF);
+    // CLI_nextState = STATE_TMP_CAL;
 }
 
 static int CLI_executeMfgPeripheralTest(void)

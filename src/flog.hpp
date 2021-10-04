@@ -15,13 +15,14 @@ typedef enum FLOG_CODE_
     FLOG_SYS_EXECSTATE  =0x0104,
     FLOG_SYS_EXITSTATE  =0x0105,
     FLOG_SYS_UNKNOWNSTATE=0x0106,
-    FLOG_CAL_ACTION     =0x0200,
+    FLOG_CAL_BURST     =0x0200,
     FLOG_CAL_INIT       =0x0201,
     FLOG_CAL_START_RUN  =0x0202,
     FLOG_CAL_LIMIT      =0x0203,
     FLOG_CAL_DONE       =0x0204,
     FLOG_CAL_EXIT       =0x0205,
-    FLOG_CAL_SLEEP      =0x0206
+    FLOG_CAL_SLEEP      =0x0206,
+    FLOG_CAL_TEMP       =0x0207,
 }FLOG_CODE_e;
 
 void FLOG_Initialize(void);
