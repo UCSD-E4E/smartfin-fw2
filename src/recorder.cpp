@@ -32,7 +32,7 @@ int Recorder::hasData(void)
     }
     while (pSystemDesc->pFileSystem->readdir(&dir, &dirEntry))
     {
-        if(dirEntry.name[0] != '.')
+        if(dirEntry.name[0] != '.' && dirEntry.name[0] != '_')
         {
             pSystemDesc->pFileSystem->closedir(&dir);
             return 1;

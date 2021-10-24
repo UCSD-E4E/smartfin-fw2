@@ -16,6 +16,7 @@
 #include "sleepTask.hpp"
 #include "flog.hpp"
 #include "mfgTest.hpp"
+#include "utils.hpp"
 
 typedef const struct CLI_menu_
 {
@@ -79,6 +80,7 @@ static int CLI_restart(void);
 static int CLI_displayFLOG(void);
 static int CLI_clearFLOG(void);
 static int CLI_executeMfgPeripheralTest(void);
+static int CLI_testSleep(void);
 
 const CLI_debugMenu_t CLI_debugMenu[] =
 {
@@ -95,6 +97,7 @@ const CLI_debugMenu_t CLI_debugMenu[] =
     {11, "Display Fault Log", CLI_displayFLOG},
     {12, "Clear Fault Log", CLI_clearFLOG},
     {13, "Execute Mfg Peripheral Test", CLI_executeMfgPeripheralTest},
+    {14, "Test Sleep", CLI_testSleep},
     {0, NULL, NULL}
 };
 
@@ -751,4 +754,29 @@ static int CLI_executeMfgPeripheralTest(void)
     retval = MfgTest::MFG_TEST_TABLE[testNum]();
     SF_OSAL_printf("%s returned %d\n", testName[testNum], retval);
     return !retval;
+}
+
+static int CLI_testSleep(void)
+{
+    char userInput[SF_OSAL_LINE_WIDTH];
+    SystemSleepConfiguration sleepConfig;
+    system_tick_t sleepTime;
+    time_t start, stop;
+    SF_OSAL_printf("Time to sleep: ");
+    getline(userInput, SF_OSAL_LINE_WIDTH);
+    sscanf(userInput, "%lu", &sleepTime);
+    SF_OSAL_printf("Sleeping for %u s\n", sleepTime);
+    start = Time.now();
+    UTIL_sleepUntil(millis() + sleepTime * 1000);
+    stop = Time.now();
+    do
+    {
+        SF_OSAL_printf("> ");
+        getline(userInput, SF_OSAL_LINE_WIDTH);
+    } while (strcmp(userInput, "continue"));
+    SF_OSAL_printf("Actual sleep time: %d s\n", stop - start);
+    SF_OSAL_printf("stop time: %d s\n", stop);
+    SF_OSAL_printf("start time: %d s\n", start);
+    
+    return 1;
 }

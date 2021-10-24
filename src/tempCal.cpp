@@ -107,10 +107,7 @@ STATES_e TemperatureCal::run(void)
         burstEnd = millis();
         sleepTime = (nextBurst - burstEnd);
         FLOG_AddError(FLOG_CAL_SLEEP, sleepTime);
-        SystemSleepConfiguration sleepConfig;
-        sleepConfig.mode(SystemSleepMode::STOP);
-        sleepConfig.duration(sleepTime);
-        System.sleep(sleepConfig);
+        UTIL_sleepUntil(nextBurst);
     }
     FLOG_AddError(FLOG_CAL_DONE, 0);
     return STATE_CLI;
