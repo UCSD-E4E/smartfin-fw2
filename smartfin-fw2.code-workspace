@@ -36,5 +36,10 @@
 			"thread": "cpp",
 			"utility": "cpp"
 		}
+	},
+	"extensions": {
+		"recommendations": [
+			"particle.particle-vscode-pack"
+		]
 	}
 }
