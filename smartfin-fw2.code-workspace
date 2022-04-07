@@ -39,7 +39,8 @@
 	},
 	"extensions": {
 		"recommendations": [
-			"particle.particle-vscode-pack"
+			"particle.particle-vscode-pack",
+			"jebbs.plantuml"
 		]
 	}
 }
