@@ -166,6 +166,15 @@ STATES_e CLI::run(void)
             }
         }
     }
+
+    /*
+     * If we have not heard from the user in CLI_NO_INPUT_TIMEOUT_MS, stop 
+     * waiting and go to sleep
+     */
+    if (millis() >= lastKeyPressTime + CLI_NO_INPUT_TIMEOUT_MS)
+    {
+        CLI_nextState = STATE_DEEP_SLEEP;
+    }
     return CLI_nextState;
 }
 
