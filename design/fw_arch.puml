@@ -1,0 +1,4 @@
+@startuml Firmware Architecture
+[smartfin-fw2.ino] as smartfin_fw2
+
+@enduml
