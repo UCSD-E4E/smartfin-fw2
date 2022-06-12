@@ -60,10 +60,9 @@ STATES_e DataUpload::run(void)
         {
             if(pSystemDesc->pWaterSensor->getCurrentStatus())
             {
-                SF_OSAL_printf("In the water!\n");
                 return STATE_SESSION_INIT;
             }
-            if(millis() - SF_CELL_SIGNAL_TIMEOUT_MS > startConnectTime)
+            if(millis() - startConnectTime > SF_CELL_SIGNAL_TIMEOUT_MS)
             {
                 break;
             }
@@ -73,7 +72,6 @@ STATES_e DataUpload::run(void)
             }
             os_thread_yield();
         }
-        
 
         if(!Particle.connected())
         {
