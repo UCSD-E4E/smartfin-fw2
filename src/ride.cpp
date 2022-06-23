@@ -266,7 +266,7 @@ STATES_e RideTask::run(void)
             SF_OSAL_printf("access tech: %d", Cellular.RSSI().getAccessTechnology());
             Cellular.off();
             
-            /* TESTING TO SEE IF WE CAN GET WHETHER 3g or 4g
+            /* TESTING TO SEE IF WE CAN GET WHETHER 3g or 4g TEST
            CellularSignal sig = Cellular.RSSI();
            int rat = sig.getAccessTechnology();
            CellularBand band_avail;
