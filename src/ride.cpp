@@ -1,6 +1,7 @@
 #include "ride.hpp"
 
 #include "Particle.h"
+#include <SpiffsParticleRK.h>
 #include <time.h>
 
 #include "conio.hpp"
@@ -262,6 +263,10 @@ STATES_e RideTask::run(void)
         if(pSystemDesc->pWaterSensor->getLastStatus() == WATER_SENSOR_LOW_STATE)
         {
             SF_OSAL_printf("Out of water\n");
+            CellularSignal sig = Cellular.RSSI();
+            int rat = sig.getAccessTechnology();
+            if(rat != NET_ACCESS_TECHNOLOGY_LTE_CAT_M1 || rat != NET_ACCESS_TECHNOLOGY_LTE)
+                return STATE_DEEP_SLEEP;
             return STATE_UPLOAD;
         }
 
