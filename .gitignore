@@ -1,4 +1,4 @@
 target/
 
 src/smartfin-fw2.cpp
-./*.bin
+*.bin
