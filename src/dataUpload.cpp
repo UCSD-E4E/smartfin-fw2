@@ -53,6 +53,13 @@ STATES_e DataUpload::run(void)
             return STATE_DEEP_SLEEP;
         }
 
+        //checks 3G flag
+        bool _3G_flag;
+        if (pSystemDesc->pNvram->get(NVRAM::_3G_FLAG, _3G_flag)) {
+            SF_OSAL_printf("3G module: entering sleep state\n");
+            return STATE_DEEP_SLEEP;
+        }
+
         // set up connection
 
         if(!waitFor(Particle.connected, SF_CELL_SIGNAL_TIMEOUT_MS))
