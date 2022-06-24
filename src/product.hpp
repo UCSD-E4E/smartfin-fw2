@@ -161,7 +161,7 @@
 /**
  * how long to stay in data upload without a cell signal/connection/succesful upload
  */
-#define SF_CELL_SIGNAL_TIMEOUT_MS 300000
+#define SF_CELL_SIGNAL_TIMEOUT_MS 15000
 
 
 
