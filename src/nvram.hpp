@@ -17,6 +17,7 @@ class NVRAM
         TMP116_CAL_DATA_COLLECTION_PERIOD_SEC,
         TMP116_CAL_CYCLE_PERIOD_SEC,
         UPLOAD_REATTEMPTS,
+        _3G_FLAG,
         NUM_DATA_IDs
     }DATA_ID_e;
 
@@ -37,7 +38,9 @@ class NVRAM
         {TMP116_CAL_ATTEMPTS_TOTAL, 0x0005, sizeof(uint8_t)},
         {TMP116_CAL_DATA_COLLECTION_PERIOD_SEC, 0x0008, sizeof(uint32_t)},
         {TMP116_CAL_CYCLE_PERIOD_SEC, 0x000C, sizeof(uint32_t)},
-        {UPLOAD_REATTEMPTS, 0x0014, sizeof(uint8_t)}
+        {UPLOAD_REATTEMPTS, 0x0014, sizeof(uint8_t)},
+        {_3G_FLAG, 0x0015, sizeof(bool)}
+
     };
     static NVRAM& getInstance(void);
 

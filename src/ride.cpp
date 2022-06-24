@@ -262,11 +262,12 @@ STATES_e RideTask::run(void)
 
         if(pSystemDesc->pWaterSensor->getLastStatus() == WATER_SENSOR_LOW_STATE)
         {
-            SF_OSAL_printf("Out of water\n");
-            CellularSignal sig = Cellular.RSSI();
-            int rat = sig.getAccessTechnology();
-            if(rat != NET_ACCESS_TECHNOLOGY_LTE_CAT_M1 || rat != NET_ACCESS_TECHNOLOGY_LTE)
+            bool _3G_flag;
+            if (pSystemDesc->pNvram->get(NVRAM::_3G_FLAG, _3G_flag)) {
+                SF_OSAL_printf("3G module: entering sleep state\n");
                 return STATE_DEEP_SLEEP;
+            }
+            SF_OSAL_printf("Out of water\n");
             return STATE_UPLOAD;
         }
 

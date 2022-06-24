@@ -50,8 +50,11 @@ static  CLI_menu_t const* CLI_findCommand(char const* const cmd, CLI_menu_t cons
 static int CLI_executeDebugMenu(const int cmd, CLI_debugMenu_t* menu);
 static void CLI_displayDebugMenu(CLI_debugMenu_t* menu);
 static void CLI_doCalibrateMode(void);
+static void CLI_set_3G_flag(void);
+static void CLI_set_4G_flag(void);
+static void CLI_view_3G_flag(void);
 
-const CLI_menu_t CLI_menu[13] =
+const CLI_menu_t CLI_menu[16] =
     {
         {'#', &CLI_displayMenu},
         {'C', &CLI_doCalibrateMode},
@@ -65,6 +68,9 @@ const CLI_menu_t CLI_menu[13] =
         {'M', &CLI_doMakeTestFiles},
         {'R', &CLI_doReadDeleteFiles},
         {'*', &CLI_doDebugMode},
+        {'H', &CLI_set_3G_flag},
+        {'O', &CLI_set_4G_flag},
+        {'V', &CLI_view_3G_flag},
         {'\0', NULL}};
 
 static int CLI_displaySystemDesc(void);
@@ -180,7 +186,7 @@ static void CLI_displayMenu(void)
         "T for MFG Test, C for C for Calibrate Mode, B for Battery State,\n"
         "I for Init Surf Session, U for Data Upload, D for Deep Sleep,\n"
         "F for Format Flash, Z to check filesytem, L for List Files,\n"
-        "R for Read/Delete/Copy Files, M for Make Files\n");
+        "R for Read/Delete/Copy Files, M for Make Files, H to set 3G mode, O to set 4G mode, V to view 3G flag\n");
 }
 
 static CLI_menu_t const* CLI_findCommand( char const* const cmd, CLI_menu_t const* const menu)
@@ -779,4 +785,23 @@ static int CLI_testSleep(void)
     SF_OSAL_printf("start time: %d s\n", start);
     
     return 1;
+}
+
+static void CLI_set_3G_flag(void) {
+    if (!pSystemDesc->pNvram->put(NVRAM::_3G_FLAG, true)) {
+        SF_OSAL_printf("error setting 3G flag\n");
+    }
+}
+
+static void CLI_set_4G_flag(void) {
+    if (!pSystemDesc->pNvram->put(NVRAM::_3G_FLAG, false)) {
+        SF_OSAL_printf("error setting 4G flag\n");
+    }
+}
+
+static void CLI_view_3G_flag(void) {
+    bool _3G_flag;
+    pSystemDesc->pNvram->get(NVRAM::_3G_FLAG, _3G_flag);
+    SF_OSAL_printf("3G flag: %d\n", _3G_flag);
+
 }
