@@ -54,7 +54,7 @@ static void CLI_set_3G_flag(void);
 static void CLI_set_4G_flag(void);
 static void CLI_view_3G_flag(void);
 
-const CLI_menu_t CLI_menu[16] =
+const CLI_menu_t CLI_menu[17] =
     {
         {'#', &CLI_displayMenu},
         {'C', &CLI_doCalibrateMode},
@@ -71,6 +71,7 @@ const CLI_menu_t CLI_menu[16] =
         {'H', &CLI_set_3G_flag},
         {'O', &CLI_set_4G_flag},
         {'V', &CLI_view_3G_flag},
+        {'X', NULL},
         {'\0', NULL}};
 
 static int CLI_displaySystemDesc(void);
@@ -124,6 +125,7 @@ void CLI::init(void)
     {
         getch();
     }
+    exitCLI = false;
 }
 
 STATES_e CLI::run(void)
@@ -163,6 +165,9 @@ STATES_e CLI::run(void)
                 {
                     SF_OSAL_printf("Unknown command\n");
                 }
+                else if(cmd->cmd == 'X') {
+                    return STATE_DEEP_SLEEP;
+                }
                 else
                 {
                     cmd->fn();
@@ -192,7 +197,9 @@ static void CLI_displayMenu(void)
         "T for MFG Test, C for C for Calibrate Mode, B for Battery State,\n"
         "I for Init Surf Session, U for Data Upload, D for Deep Sleep,\n"
         "F for Format Flash, Z to check filesytem, L for List Files,\n"
-        "R for Read/Delete/Copy Files, M for Make Files, H to set 3G mode, O to set 4G mode, V to view 3G flag\n");
+        "R for Read/Delete/Copy Files, M for Make Files,\n"
+        "H to set 3G mode, O to set 4G mode, V to view 3G flag,\n"
+        "X to exit command line\n");
 }
 
 static CLI_menu_t const* CLI_findCommand( char const* const cmd, CLI_menu_t const* const menu)
