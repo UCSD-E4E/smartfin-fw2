@@ -32,7 +32,7 @@ void SleepTask::init(void)
     // bring down the system safely
     SYS_deinitSys();
 
-    switch(SleepTask::bootBehavior)
+    /*switch(SleepTask::bootBehavior)
     {
         case BOOT_BEHAVIOR_UPLOAD_REATTEMPT:
             if(digitalRead(WKP_PIN) == HIGH)
@@ -47,7 +47,7 @@ void SleepTask::init(void)
         default:
             System.sleep(SLEEP_MODE_SOFTPOWEROFF);
             break;
-    }
+    } */
     pSystemDesc->pChargerCheck->start();
 
 }

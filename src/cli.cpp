@@ -146,7 +146,7 @@ STATES_e CLI::run(void)
             break;
         }
 
-        if(!(pSystemDesc->flags->hasCharger)) {
+        if(!digitalRead(SF_USB_PWR_DETECT_PIN)) {
             return STATE_CHARGE;
         }
 

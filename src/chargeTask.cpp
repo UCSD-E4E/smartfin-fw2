@@ -32,7 +32,8 @@ STATES_e ChargeTask::run(void)
         }
 
         
-        if (!pSystemDesc->flags->hasCharger) {
+        if (!digitalRead(SF_USB_PWR_DETECT_PIN)) {
+            SF_OSAL_printf("no usb detected\n");
             continue;
         }
 
