@@ -34,10 +34,6 @@ STATES_e ChargeTask::run(void)
                 return STATE_CLI;
             }
         }
-        if(!pSystemDesc->flags->hasCharger)
-        {
-            return STATE_DEEP_SLEEP;
-        }
         if(pSystemDesc->pWaterSensor->getLastReading())
         {
             return STATE_SESSION_INIT;
