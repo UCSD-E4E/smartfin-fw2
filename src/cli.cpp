@@ -118,6 +118,7 @@ void CLI::init(void)
     CLI_ledStatus.setPeriod(CLI_RGB_LED_PERIOD);
     CLI_ledStatus.setPriority(CLI_RGB_LED_PRIORITY);
     CLI_ledStatus.setActive();
+    pSystemDesc->pChargerCheck->start();
 
     while(kbhit())
     {
@@ -139,6 +140,10 @@ STATES_e CLI::run(void)
     SF_OSAL_printf(">");
     while (millis() < lastKeyPressTime + CLI_NO_INPUT_TIMEOUT_MS && CLI_nextState == STATE_CLI)
     {
+        if(!pSystemDesc->flags->hasCharger) {
+            return STATE_DEEP_SLEEP;
+        }
+
         if (kbhit())
         {
             userInput = getch();
@@ -177,6 +182,7 @@ STATES_e CLI::run(void)
 
 void CLI::exit(void)
 {
+    pSystemDesc->pChargerCheck->stop();
     CLI_ledStatus.setActive(false);
 }
 
