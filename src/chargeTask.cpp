@@ -26,7 +26,7 @@ STATES_e ChargeTask::run(void)
     while(1)
     {
 
-        if(pSystemDesc->pWaterSensor->getLastStatus())
+        if(pSystemDesc->pWaterSensor->getLastReading())
         {
             return STATE_SESSION_INIT;
         }
