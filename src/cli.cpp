@@ -142,8 +142,7 @@ STATES_e CLI::run(void)
     while (millis() < lastKeyPressTime + CLI_NO_INPUT_TIMEOUT_MS && CLI_nextState == STATE_CLI)
     {
         if(!pSystemDesc->flags->hasCharger) {
-            CLI_nextState = STATE_DEEP_SLEEP;
-            break;
+            return STATE_DEEP_SLEEP;
         }
 
         if (kbhit())
@@ -166,8 +165,7 @@ STATES_e CLI::run(void)
                     SF_OSAL_printf("Unknown command\n");
                 }
                 else if(cmd->cmd == 'X') {
-                    CLI_nextState = STATE_DEEP_SLEEP;
-                    break;
+                    return STATE_DEEP_SLEEP;
                 }
                 else
                 {
