@@ -37,6 +37,15 @@ STATES_e DataUpload::run(void)
 
     while(1)
     {
+        //checks 3G flag
+        bool _3G_flag;
+        pSystemDesc->pNvram->get(NVRAM::_3G_FLAG, _3G_flag);
+        if (_3G_flag) {
+            SF_OSAL_printf("3G module: entering sleep state\n");
+            return STATE_DEEP_SLEEP;
+            //this can go to state_charge if we want to not save battery...
+        }
+
         // Power is most important.  If we don't have enough power, don't even
         // peek at the recorder
         SF_OSAL_printf("Voltage: %f\n", pSystemDesc->pBattery->getVCell());
@@ -46,17 +55,11 @@ STATES_e DataUpload::run(void)
             return STATE_DEEP_SLEEP;
         }
 
+
         // Do we have something to publish to begin with?  If not, save power
         if(!pSystemDesc->pRecorder->hasData())
         {
             SF_OSAL_printf("No data to transmit\n");
-            return STATE_DEEP_SLEEP;
-        }
-
-        //checks 3G flag
-        bool _3G_flag;
-        if (pSystemDesc->pNvram->get(NVRAM::_3G_FLAG, _3G_flag)) {
-            SF_OSAL_printf("3G module: entering sleep state\n");
             return STATE_DEEP_SLEEP;
         }
 

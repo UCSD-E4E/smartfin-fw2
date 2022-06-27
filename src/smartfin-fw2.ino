@@ -166,11 +166,15 @@ static void initializeTaskObjects(void)
   currentState = SF_DEFAULT_STATE;
   SleepTask::loadBootBehavior();
 
+  //checks 3G flag
+    bool _3G_flag;
+    pSystemDesc->pNvram->get(NVRAM::_3G_FLAG, _3G_flag);
+
   switch(SleepTask::getBootBehavior())
   {
   default:
   case SleepTask::BOOT_BEHAVIOR_NORMAL:
-    if(digitalRead(SF_USB_PWR_DETECT_PIN) == HIGH)
+    if(digitalRead(SF_USB_PWR_DETECT_PIN) == HIGH && !_3G_flag)
     {
       currentState = STATE_UPLOAD;
     }
