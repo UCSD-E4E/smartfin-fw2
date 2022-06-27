@@ -31,6 +31,7 @@ STATES_e ChargeTask::run(void)
             return STATE_SESSION_INIT;
         }
 
+        
         if (!pSystemDesc->flags->hasCharger) {
             continue;
         }

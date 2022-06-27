@@ -58,7 +58,7 @@ STATES_e SleepTask::run(void)
     {
         return STATE_CHARGE;
     }
-    System.reset();
+    //System.reset();
     return STATE_NULL;
 }
 
