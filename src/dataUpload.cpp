@@ -13,13 +13,6 @@ void DataUpload::init(void)
 {
     SF_OSAL_printf("Entering SYSTEM_STATE_DATA_UPLOAD\n");
 
-    SF_OSAL_printf("\n\n\n\n\n\n\n\n\n\n\n\n");
-    Cellular.on();
-    SF_OSAL_printf("access tech: %d", Cellular.RSSI().getAccessTechnology()); 
-    SF_OSAL_printf("RRSI: %d", Cellular.RSSI()); 
-    Cellular.off();
-    SF_OSAL_printf("\n\n");
-
     this->initSuccess = 0;
     Particle.connect();
     os_thread_yield();

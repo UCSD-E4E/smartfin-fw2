@@ -262,19 +262,7 @@ STATES_e RideTask::run(void)
 
         if(pSystemDesc->pWaterSensor->getLastStatus() == WATER_SENSOR_LOW_STATE)
         {
-            Cellular.on();
-            SF_OSAL_printf("access tech: %d", Cellular.RSSI().getAccessTechnology());
-            Cellular.off();
-            
-            /* TESTING TO SEE IF WE CAN GET WHETHER 3g or 4g TEST
-           CellularSignal sig = Cellular.RSSI();
-           int rat = sig.getAccessTechnology();
-           CellularBand band_avail;
-           SF_OSAL_printf("rat: %d", rat); 
-           SF_OSAL_printf("bands: %d", Cellular.getBandAvailable(band_avail)); 
-            if(rat != NET_ACCESS_TECHNOLOGY_LTE_CAT_M1 || rat != NET_ACCESS_TECHNOLOGY_LTE)
-                return STATE_DEEP_SLEEP;
-            */
+            SF_OSAL_printf("Out of water!\n");
             return STATE_UPLOAD;
         }
 
