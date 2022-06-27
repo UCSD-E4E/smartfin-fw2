@@ -262,12 +262,7 @@ STATES_e RideTask::run(void)
 
         if(pSystemDesc->pWaterSensor->getLastStatus() == WATER_SENSOR_LOW_STATE)
         {
-            bool _3G_flag;
-            if (pSystemDesc->pNvram->get(NVRAM::_3G_FLAG, _3G_flag)) {
-                SF_OSAL_printf("3G module: entering sleep state\n");
-                return STATE_DEEP_SLEEP;
-            }
-            SF_OSAL_printf("Out of water\n");
+            SF_OSAL_printf("Out of water!\n");
             return STATE_UPLOAD;
         }
 
