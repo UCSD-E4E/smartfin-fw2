@@ -22,8 +22,9 @@ void ChargeTask::init(void)
 
 STATES_e ChargeTask::run(void)
 {
-    //attempt at loop fix #1
-    //delay(1000);
+    //short delay allows time on bootup
+    //for init. session
+    delay(1000);
     const SleepTask::BOOT_BEHAVIOR_e bootBehavior = SleepTask::getBootBehavior();
     while(1)
     {
@@ -35,9 +36,7 @@ STATES_e ChargeTask::run(void)
 
         //charger is unplugged
         if (!pSystemDesc->flags->hasCharger) {
-            continue;
-            //attempt at loop fix #1
-            //return STATE_DEEP_SLEEP;
+            return STATE_DEEP_SLEEP;
         }
 
         if(bootBehavior == SleepTask::BOOT_BEHAVIOR_UPLOAD_REATTEMPT)
