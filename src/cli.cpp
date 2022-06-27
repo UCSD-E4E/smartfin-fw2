@@ -139,12 +139,22 @@ STATES_e CLI::run(void)
 
     lastKeyPressTime = millis();
     SF_OSAL_printf(">");
-    while (millis() < lastKeyPressTime + CLI_NO_INPUT_TIMEOUT_MS && CLI_nextState == STATE_CLI)
+    while (1)
     {
-        if(!pSystemDesc->flags->hasCharger) {
+        if (millis() >= lastKeyPressTime + CLI_NO_INPUT_TIMEOUT_MS || CLI_nextState != STATE_CLI)
+        {
+            break;
+        }
+
+        if(!(pSystemDesc->flags->hasCharger)) {
             return STATE_DEEP_SLEEP;
         }
 
+        if(pSystemDesc->pWaterSensor->getCurrentStatus())
+        {
+            CLI_nextState = STATE_SESSION_INIT;
+        }
+        
         if (kbhit())
         {
             userInput = getch();

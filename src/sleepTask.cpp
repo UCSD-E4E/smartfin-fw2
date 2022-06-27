@@ -48,6 +48,7 @@ void SleepTask::init(void)
             System.sleep(SLEEP_MODE_SOFTPOWEROFF);
             break;
     }
+    pSystemDesc->pChargerCheck->start();
 
 }
 
@@ -57,12 +58,13 @@ STATES_e SleepTask::run(void)
     {
         return STATE_CHARGE;
     }
-    // System.reset();
+    System.reset();
     return STATE_NULL;
 }
 
 void SleepTask::exit(void)
 {
+    pSystemDesc->pChargerCheck->stop();
     return;
 }
 

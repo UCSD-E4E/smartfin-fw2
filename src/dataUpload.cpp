@@ -55,7 +55,8 @@ STATES_e DataUpload::run(void)
 
         //checks 3G flag
         bool _3G_flag;
-        if (pSystemDesc->pNvram->get(NVRAM::_3G_FLAG, _3G_flag)) {
+        pSystemDesc->pNvram->get(NVRAM::_3G_FLAG, _3G_flag);
+        if (_3G_flag) {
             SF_OSAL_printf("3G module: entering sleep state\n");
             return STATE_DEEP_SLEEP;
         }
