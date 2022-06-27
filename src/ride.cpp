@@ -262,7 +262,7 @@ STATES_e RideTask::run(void)
 
         if(pSystemDesc->pWaterSensor->getLastStatus() == WATER_SENSOR_LOW_STATE)
         {
-            SF_OSAL_printf("Out of water\n");
+            SF_OSAL_printf("Out of water!\n");
             return STATE_UPLOAD;
         }
 
