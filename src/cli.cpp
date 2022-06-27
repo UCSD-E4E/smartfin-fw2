@@ -147,7 +147,7 @@ STATES_e CLI::run(void)
         }
 
         if(!(pSystemDesc->flags->hasCharger)) {
-            return STATE_DEEP_SLEEP;
+            return STATE_CHARGE;
         }
 
         if(pSystemDesc->pWaterSensor->getCurrentStatus())
@@ -175,7 +175,7 @@ STATES_e CLI::run(void)
                     SF_OSAL_printf("Unknown command\n");
                 }
                 else if(cmd->cmd == 'X') {
-                    return STATE_DEEP_SLEEP;
+                    return STATE_CHARGE;
                 }
                 else
                 {
