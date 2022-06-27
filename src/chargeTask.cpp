@@ -25,18 +25,14 @@ STATES_e ChargeTask::run(void)
     const SleepTask::BOOT_BEHAVIOR_e bootBehavior = SleepTask::getBootBehavior();
     while(1)
     {
-        if(kbhit())
-        {
-            this->inputBuffer[CLI_BUFFER_LEN - 1] = getch();
-            byteshiftl(this->inputBuffer, CLI_BUFFER_LEN, 1, 0);
-            if(strcmp(this->inputBuffer, CLI_INTERRUPT_PHRASE) == 0)
-            {
-                return STATE_CLI;
-            }
-        }
+
         if(pSystemDesc->pWaterSensor->getLastReading())
         {
             return STATE_SESSION_INIT;
+        }
+
+        if (!pSystemDesc->flags->hasCharger) {
+            continue;
         }
 
         if(bootBehavior == SleepTask::BOOT_BEHAVIOR_UPLOAD_REATTEMPT)
@@ -44,6 +40,16 @@ STATES_e ChargeTask::run(void)
             if(millis() - this->startTime >= SF_UPLOAD_REATTEMPT_DELAY_SEC * MSEC_PER_SEC)
             {
                 return STATE_UPLOAD;
+            }
+        }
+
+        if(kbhit())
+        {
+            this->inputBuffer[CLI_BUFFER_LEN - 1] = getch();
+            byteshiftl(this->inputBuffer, CLI_BUFFER_LEN, 1, 0);
+            if(strcmp(this->inputBuffer, CLI_INTERRUPT_PHRASE) == 0)
+            {
+                return STATE_CLI;
             }
         }
         os_thread_yield();
