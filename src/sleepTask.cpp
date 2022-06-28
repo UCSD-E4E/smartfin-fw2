@@ -29,12 +29,15 @@ void SleepTask::init(void)
     pSystemDesc->pNvram->put(NVRAM::BOOT_BEHAVIOR, SleepTask::bootBehavior);
     pSystemDesc->pNvram->put(NVRAM::NVRAM_VALID, true);
 
+
+    SleepTask::setBootBehavior(BOOT_BEHAVIOR_NORMAL);
     // bring down the system safely
     SYS_deinitSys();
 
     switch(SleepTask::bootBehavior)
     {
         case BOOT_BEHAVIOR_UPLOAD_REATTEMPT:
+            SF_OSAL_printf("REUPLOAD\n\n\n");
             if(digitalRead(WKP_PIN) == HIGH)
             {
                 System.sleep(SLEEP_MODE_SOFTPOWEROFF);
@@ -45,20 +48,24 @@ void SleepTask::init(void)
                 System.sleep(SLEEP_MODE_SOFTPOWEROFF, SF_UPLOAD_REATTEMPT_DELAY_SEC);
             }
         default:
-            System.sleep(SLEEP_MODE_SOFTPOWEROFF);
+            digitalWrite(WATER_DETECT_EN_PIN, LOW);
+            delayMicroseconds(WATER_DETECT_EN_TIME_US);
+            SystemSleepConfiguration config;
+            config.mode(SystemSleepMode::ULTRA_LOW_POWER).gpio(WATER_DETECT_PIN, RISING).gpio(SF_USB_PWR_DETECT_PIN, RISING);
+            System.sleep(config);
             break;
     }
+    pSystemDesc->pChargerCheck->start();
 
 }
 
 STATES_e SleepTask::run(void)
 {
-    if(pSystemDesc->flags->hasCharger)
-    {
+    //System.reset();
+    if (digitalRead(SF_USB_PWR_DETECT_PIN)) {
         return STATE_CHARGE;
     }
-    // System.reset();
-    return STATE_NULL;
+    return STATE_DEEP_SLEEP;
 }
 
 void SleepTask::exit(void)

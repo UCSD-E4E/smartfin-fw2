@@ -23,11 +23,43 @@ void ChargeTask::init(void)
 STATES_e ChargeTask::run(void)
 {
     const SleepTask::BOOT_BEHAVIOR_e bootBehavior = SleepTask::getBootBehavior();
+    system_tick_t usb_timeout = 0;
+    system_tick_t ptime = millis();
     while(1)
     {
-        if(pSystemDesc->pWaterSensor->getLastStatus())
+        if(pSystemDesc->pWaterSensor->getLastReading())
         {
             return STATE_SESSION_INIT;
+        }
+
+        if (pSystemDesc->pWaterSensor->getCurrentReading()) {
+            continue;
+        }
+
+        /*if (!digitalRead(SF_USB_PWR_DETECT_PIN)) {
+            usb_timeout += millis() - ptime;
+            if (usb_timeout >= 5000) {
+                return STATE_DEEP_SLEEP;
+            }
+            else {
+                continue;
+            }
+        }
+        else {
+            usb_timeout = 0;
+        }
+        ptime = millis(); */
+
+        if (!digitalRead(SF_USB_PWR_DETECT_PIN)) {
+            return STATE_DEEP_SLEEP;
+        }
+
+        if(bootBehavior == SleepTask::BOOT_BEHAVIOR_UPLOAD_REATTEMPT)
+        {
+            if(millis() - this->startTime >= SF_UPLOAD_REATTEMPT_DELAY_SEC * MSEC_PER_SEC)
+            {
+                return STATE_UPLOAD;
+            }
         }
 
         if(kbhit())
