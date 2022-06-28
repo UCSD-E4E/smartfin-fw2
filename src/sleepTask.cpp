@@ -24,13 +24,13 @@ void SleepTask::init(void)
     {
         SleepTask::bootBehavior = BOOT_BEHAVIOR_NORMAL;
     }
+    SleepTask::setBootBehavior(BOOT_BEHAVIOR_NORMAL);
 
     // commit EEPROM before we bring down everything
     pSystemDesc->pNvram->put(NVRAM::BOOT_BEHAVIOR, SleepTask::bootBehavior);
     pSystemDesc->pNvram->put(NVRAM::NVRAM_VALID, true);
 
 
-    SleepTask::setBootBehavior(BOOT_BEHAVIOR_NORMAL);
     // bring down the system safely
     SYS_deinitSys();
 
@@ -51,25 +51,26 @@ void SleepTask::init(void)
             digitalWrite(WATER_DETECT_EN_PIN, LOW);
             delayMicroseconds(WATER_DETECT_EN_TIME_US);
             SystemSleepConfiguration config;
-            config.mode(SystemSleepMode::ULTRA_LOW_POWER).gpio(WATER_DETECT_PIN, RISING).gpio(SF_USB_PWR_DETECT_PIN, RISING);
+            config.mode(SystemSleepMode::STOP).gpio(WATER_DETECT_PIN, RISING).gpio(SF_USB_PWR_DETECT_PIN, RISING);
             System.sleep(config);
             break;
     }
-    pSystemDesc->pChargerCheck->start();
 
 }
 
 STATES_e SleepTask::run(void)
 {
-    //System.reset();
-    if (digitalRead(SF_USB_PWR_DETECT_PIN)) {
-        return STATE_CHARGE;
+    while(1) {
+        if (digitalRead(SF_USB_PWR_DETECT_PIN) || pSystemDesc->pWaterSensor->getCurrentReading()) {
+            return STATE_CHARGE;
+        }
     }
     return STATE_DEEP_SLEEP;
 }
 
 void SleepTask::exit(void)
 {
+    this->ledStatus.setActive(false);
     return;
 }
 

@@ -25,15 +25,12 @@ STATES_e ChargeTask::run(void)
     const SleepTask::BOOT_BEHAVIOR_e bootBehavior = SleepTask::getBootBehavior();
     system_tick_t usb_timeout = 0;
     system_tick_t ptime = millis();
+    delay(1000);
     while(1)
     {
         if(pSystemDesc->pWaterSensor->getLastReading())
         {
             return STATE_SESSION_INIT;
-        }
-
-        if (pSystemDesc->pWaterSensor->getCurrentReading()) {
-            continue;
         }
 
         /*if (!digitalRead(SF_USB_PWR_DETECT_PIN)) {
@@ -50,7 +47,7 @@ STATES_e ChargeTask::run(void)
         }
         ptime = millis(); */
 
-        if (!digitalRead(SF_USB_PWR_DETECT_PIN)) {
+        if (!pSystemDesc->flags->hasCharger) {
             return STATE_DEEP_SLEEP;
         }
 
