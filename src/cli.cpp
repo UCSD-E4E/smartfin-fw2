@@ -186,7 +186,8 @@ static void CLI_displayMenu(void)
         "T for MFG Test, C for C for Calibrate Mode, B for Battery State,\n"
         "I for Init Surf Session, U for Data Upload, D for Deep Sleep,\n"
         "F for Format Flash, Z to check filesytem, L for List Files,\n"
-        "R for Read/Delete/Copy Files, M for Make Files, H to set 3G mode, O to set 4G mode, V to view 3G flag\n");
+        "R for Read/Delete/Copy Files, M for Make Files,\n"
+        "H to set 3G mode, O to set 4G mode, V to view 3G flag.\n");
 }
 
 static CLI_menu_t const* CLI_findCommand( char const* const cmd, CLI_menu_t const* const menu)

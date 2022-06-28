@@ -43,13 +43,25 @@ STATES_e ChargeTask::run(void)
         //makes sure we don't go into upload mode in 3g off booting
         bool _3G_flag;
         pSystemDesc->pNvram->get(NVRAM::_3G_FLAG, _3G_flag);
-        if (_3G_flag) {  
+        if (_3G_flag) 
+        {  
+        //it is 3g
         }
-        else if(bootBehavior == SleepTask::BOOT_BEHAVIOR_UPLOAD_REATTEMPT)
-        {
-            if(millis() - this->startTime >= SF_UPLOAD_REATTEMPT_DELAY_SEC * MSEC_PER_SEC)
+        else 
+        { 
+        //it is 4g
+            /* features needs more specific testing on 4g models
+            if(!pSystemDesc->flags->hasCharger)
             {
-                return STATE_UPLOAD;
+                return STATE_DEEP_SLEEP;
+            }
+            */
+            if(bootBehavior == SleepTask::BOOT_BEHAVIOR_UPLOAD_REATTEMPT)
+            {
+                if(millis() - this->startTime >= SF_UPLOAD_REATTEMPT_DELAY_SEC * MSEC_PER_SEC)
+                {
+                    return STATE_UPLOAD;
+                }
             }
         }
 
