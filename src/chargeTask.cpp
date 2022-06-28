@@ -23,18 +23,32 @@ void ChargeTask::init(void)
 STATES_e ChargeTask::run(void)
 {
     const SleepTask::BOOT_BEHAVIOR_e bootBehavior = SleepTask::getBootBehavior();
+    system_tick_t usb_timeout = 0;
+    system_tick_t ptime = millis();
+    delay(1000);
     while(1)
     {
-
         if(pSystemDesc->pWaterSensor->getLastReading())
         {
             return STATE_SESSION_INIT;
         }
 
-        
-        if (!digitalRead(SF_USB_PWR_DETECT_PIN)) {
-            SF_OSAL_printf("no usb detected\n");
-            continue;
+        /*if (!digitalRead(SF_USB_PWR_DETECT_PIN)) {
+            usb_timeout += millis() - ptime;
+            if (usb_timeout >= 5000) {
+                return STATE_DEEP_SLEEP;
+            }
+            else {
+                continue;
+            }
+        }
+        else {
+            usb_timeout = 0;
+        }
+        ptime = millis(); */
+
+        if (!pSystemDesc->flags->hasCharger) {
+            return STATE_DEEP_SLEEP;
         }
 
         if(bootBehavior == SleepTask::BOOT_BEHAVIOR_UPLOAD_REATTEMPT)
@@ -54,6 +68,20 @@ STATES_e ChargeTask::run(void)
                 return STATE_CLI;
             }
         }
+
+        //makes sure we don't go into upload mode in 3g off booting
+        bool _3G_flag;
+        pSystemDesc->pNvram->get(NVRAM::_3G_FLAG, _3G_flag);
+        if (_3G_flag) {  
+        }
+        else if(bootBehavior == SleepTask::BOOT_BEHAVIOR_UPLOAD_REATTEMPT)
+        {
+            if(millis() - this->startTime >= SF_UPLOAD_REATTEMPT_DELAY_SEC * MSEC_PER_SEC)
+            {
+                return STATE_UPLOAD;
+            }
+        }
+
         os_thread_yield();
     }
 }

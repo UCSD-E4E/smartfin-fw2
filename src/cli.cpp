@@ -146,8 +146,8 @@ STATES_e CLI::run(void)
             break;
         }
 
-        if(!digitalRead(SF_USB_PWR_DETECT_PIN)) {
-            return STATE_CHARGE;
+        if(!pSystemDesc->flags->hasCharger) {
+            return STATE_DEEP_SLEEP;
         }
 
         if(pSystemDesc->pWaterSensor->getCurrentStatus())
