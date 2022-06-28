@@ -73,6 +73,7 @@ SYSTEM_THREAD(ENABLED);
 // setup() runs once, when the device is first turned on.
 void setup()
 {
+  currentState = STATE_NULL;
   int i;
   // Put initialization like pinMode and begin functions here.
 
@@ -153,7 +154,7 @@ void mainThread(void* args)
     printState(currentState);
     SF_OSAL_printf("\n");
     #endif
-    FLOG_AddError(FLOG_SYS_EXITSTATE, (uint16_t) currentState);
+    FLOG_AddError(FLOG_SYS_EXITSTATE, (uint16_t) pState->state);
     pState->task->exit();
     #ifdef SF_DEBUG
     SF_OSAL_printf("Exit complete\n");
