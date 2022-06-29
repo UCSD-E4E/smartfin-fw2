@@ -23,8 +23,6 @@ void ChargeTask::init(void)
 STATES_e ChargeTask::run(void)
 {
     const SleepTask::BOOT_BEHAVIOR_e bootBehavior = SleepTask::getBootBehavior();
-    system_tick_t usb_timeout = 0;
-    system_tick_t ptime = millis();
     delay(1000);
     while(1)
     {
@@ -32,20 +30,6 @@ STATES_e ChargeTask::run(void)
         {
             return STATE_SESSION_INIT;
         }
-
-        /*if (!digitalRead(SF_USB_PWR_DETECT_PIN)) {
-            usb_timeout += millis() - ptime;
-            if (usb_timeout >= 5000) {
-                return STATE_DEEP_SLEEP;
-            }
-            else {
-                continue;
-            }
-        }
-        else {
-            usb_timeout = 0;
-        }
-        ptime = millis(); */
 
         if (!pSystemDesc->flags->hasCharger) {
             return STATE_DEEP_SLEEP;
