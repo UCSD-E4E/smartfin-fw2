@@ -45,18 +45,6 @@ STATES_e ChargeTask::run(void)
         }
         ptime +=time_since_last_tick;
 
-        if (!pSystemDesc->flags->hasCharger) {
-            return STATE_DEEP_SLEEP;
-        }
-
-        if(bootBehavior == SleepTask::BOOT_BEHAVIOR_UPLOAD_REATTEMPT)
-        {
-            if(millis() - this->startTime >= SF_UPLOAD_REATTEMPT_DELAY_SEC * MSEC_PER_SEC)
-            {
-                return STATE_UPLOAD;
-            }
-        }
-
         if(kbhit())
         {
             this->inputBuffer[CLI_BUFFER_LEN - 1] = getch();
