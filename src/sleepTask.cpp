@@ -34,7 +34,7 @@ void SleepTask::init(void)
     // bring down the system safely
     SYS_deinitSys();
 
-    /*switch(SleepTask::bootBehavior)
+    switch(SleepTask::bootBehavior)
     {
         case BOOT_BEHAVIOR_UPLOAD_REATTEMPT:
             SF_OSAL_printf("REUPLOAD\n\n\n");
@@ -54,7 +54,7 @@ void SleepTask::init(void)
             config.mode(SystemSleepMode::STOP).gpio(WATER_DETECT_PIN, RISING).gpio(SF_USB_PWR_DETECT_PIN, RISING);
             System.sleep(config);
             break;
-    } */
+    }
     pSystemDesc->pChargerCheck->start();
 
 }
