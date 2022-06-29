@@ -24,7 +24,6 @@ void SleepTask::init(void)
     {
         SleepTask::bootBehavior = BOOT_BEHAVIOR_NORMAL;
     }
-    SleepTask::setBootBehavior(BOOT_BEHAVIOR_NORMAL);
 
     // commit EEPROM before we bring down everything
     pSystemDesc->pNvram->put(NVRAM::BOOT_BEHAVIOR, SleepTask::bootBehavior);
@@ -55,6 +54,7 @@ void SleepTask::init(void)
             System.sleep(config);
             break;
     }
+    SYS_initFS_wrapper();
     pSystemDesc->pChargerCheck->start();
 
 }

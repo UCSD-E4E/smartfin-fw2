@@ -52,5 +52,5 @@ extern SystemDesc_t* pSystemDesc;
 
 int SYS_initSys(void);
 int SYS_deinitSys(void);
-
+int SYS_initFS_wrapper(void);
 #endif

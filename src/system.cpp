@@ -46,6 +46,11 @@ static int SYS_initTasks(void);
 static int SYS_initSensors(void);
 static int SYS_initTimebase(void);
 
+int SYS_initFS_wrapper(void) {
+    SYS_initFS();
+    return 1;
+}
+
 int SYS_initSys(void)
 {
     memset(pSystemDesc, 0, sizeof(SystemDesc_t));
