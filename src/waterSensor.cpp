@@ -62,7 +62,7 @@ uint8_t WaterSensor::takeReading()
     digitalWrite(water_detect_en_pin, LOW);
     delayMicroseconds(WATER_DETECT_EN_TIME_US);
     water_detect_array[array_location] = digitalRead(water_detect_pin); // comment out if using above logic block
-    digitalWrite(water_detect_en_pin, HIGH);
+    //digitalWrite(water_detect_en_pin, HIGH);
 
     // add value to the current sum
     array_sum += water_detect_array[array_location];
