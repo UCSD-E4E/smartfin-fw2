@@ -150,7 +150,7 @@ STATES_e CLI::run(void)
             return STATE_DEEP_SLEEP;
         }
 
-        if(pSystemDesc->pWaterSensor->getCurrentStatus())
+        if(pSystemDesc->pWaterSensor->getLastReading())
         {
             CLI_nextState = STATE_SESSION_INIT;
         }
