@@ -47,11 +47,13 @@ void SleepTask::init(void)
                 System.sleep(SLEEP_MODE_SOFTPOWEROFF, SF_UPLOAD_REATTEMPT_DELAY_SEC);
             }
         default:
+            digitalWrite(WKP, LOW);
             SystemSleepConfiguration config;
             config.mode(SystemSleepMode::HIBERNATE).gpio(WKP, RISING);
             System.sleep(config);
             break;
     }
+    //safety
     System.reset();
 }
 

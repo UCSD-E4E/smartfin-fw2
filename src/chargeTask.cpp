@@ -23,7 +23,8 @@ void ChargeTask::init(void)
 STATES_e ChargeTask::run(void)
 {
     const SleepTask::BOOT_BEHAVIOR_e bootBehavior = SleepTask::getBootBehavior();
-    delay(500);
+    system_tick_t ptime = millis();
+    system_tick_t usb_timeout = 0;
     while(1)
     {
         if(pSystemDesc->pWaterSensor->getLastReading())
@@ -31,9 +32,19 @@ STATES_e ChargeTask::run(void)
             return STATE_SESSION_INIT;
         }
 
+        //if water or charger not detected for one second, return to sleep
+        system_tick_t time_since_last_tick = millis() - ptime;
         if (!pSystemDesc->flags->hasCharger) {
-            return STATE_DEEP_SLEEP;
+            usb_timeout += time_since_last_tick;
+            if (usb_timeout >= CHARGE_USB_TIMEOUT) {
+                return STATE_DEEP_SLEEP;
+            }
         }
+        else {
+            usb_timeout = 0;
+        }
+
+        ptime +=time_since_last_tick;
 
         if(kbhit())
         {
