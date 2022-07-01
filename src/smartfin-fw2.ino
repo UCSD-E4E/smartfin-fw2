@@ -24,7 +24,7 @@
 #include "flog.hpp"
 #include "mfgTest.hpp"
 #include "tempCal.hpp"
-PRODUCT_ID(8977)
+PRODUCT_ID(PRODUCT_ID_SMARTFIN_Z7)
 PRODUCT_VERSION(FW_MAJOR_VERSION << 13 | FW_MINOR_VERSION << 6 | FW_BUILD_NUM)
 
 #define SF_DEBUG

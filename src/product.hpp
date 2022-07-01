@@ -195,4 +195,7 @@
  * 
  */
 #define SF_BATTERY_MAX_VOLTAGE 4.3
+
+#define PRODUCT_ID_SMARTFIN_Z7  8977
+#define PRODUCT_ID_UCSD_SMARTFIN    17293
 #endif
