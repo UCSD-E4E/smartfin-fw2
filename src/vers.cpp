@@ -1,10 +1,11 @@
 #include "vers.hpp"
-
+#include "product.hpp"
 #include "conio.hpp"
 
 const char* BUILD_DATE = __DATE__;
 const char* BUILD_TIME = __TIME__;
 
+#if PRODUCT_VERSION_USE_HEX == 1
 #if FW_MAJOR_VERSION > 7
 #error Major Version exceeds field width!
 #endif
@@ -15,6 +16,23 @@ const char* BUILD_TIME = __TIME__;
 
 #if FW_BUILD_NUM > 127
 #error Build Number exceeds field width!
+#endif
+#else
+#if FW_MAJOR_VERSION > 6
+#error Major Version exceeds field width!
+#endif
+
+#if FW_MINOR_VERSION > 99
+#error Minor Version exceeds field width!
+#endif
+
+#if FW_BUILD_NUM > 99
+#error Build Number exceeds field width!
+#endif
+#endif
+
+#if PRODUCT_VERSION_VALUE > UINT16_MAX
+#error Build Value exceeds field width!
 #endif
 
 void VERS_printBanner(void)
