@@ -118,7 +118,7 @@
  * before going to sleep
  * 
  */
-#define SURF_SESSION_GET_INTO_WATER_TIMEOUT_MS 30000
+#define SURF_SESSION_GET_INTO_WATER_TIMEOUT_MS 300000
 
 /*******************************************************************************
  * System Configuration
