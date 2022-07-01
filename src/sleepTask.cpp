@@ -47,6 +47,7 @@ void SleepTask::init(void)
                 System.sleep(SLEEP_MODE_SOFTPOWEROFF, SF_UPLOAD_REATTEMPT_DELAY_SEC);
             }
         default:
+            pSystemDesc->pWaterCheck->stop();
             digitalWrite(WATER_DETECT_EN_PIN, LOW);
             delayMicroseconds(WATER_DETECT_EN_TIME_US);
             SystemSleepConfiguration config;
