@@ -47,11 +47,8 @@ void SleepTask::init(void)
                 System.sleep(SLEEP_MODE_SOFTPOWEROFF, SF_UPLOAD_REATTEMPT_DELAY_SEC);
             }
         default:
-            pSystemDesc->pWaterCheck->stop();
-            digitalWrite(WATER_DETECT_EN_PIN, LOW);
-            delayMicroseconds(WATER_DETECT_EN_TIME_US);
             SystemSleepConfiguration config;
-            config.mode(SystemSleepMode::STOP).gpio(WATER_DETECT_PIN, RISING).gpio(SF_USB_PWR_DETECT_PIN, RISING);
+            config.mode(SystemSleepMode::HIBERNATE).gpio(WKP, RISING);
             System.sleep(config);
             break;
     }

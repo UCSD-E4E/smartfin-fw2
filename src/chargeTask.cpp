@@ -23,7 +23,7 @@ void ChargeTask::init(void)
 STATES_e ChargeTask::run(void)
 {
     const SleepTask::BOOT_BEHAVIOR_e bootBehavior = SleepTask::getBootBehavior();
-    //delay(1000);
+    delay(500);
     while(1)
     {
         if(pSystemDesc->pWaterSensor->getLastReading())
