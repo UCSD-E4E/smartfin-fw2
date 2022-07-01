@@ -168,14 +168,14 @@ static void initializeTaskObjects(void)
   SleepTask::loadBootBehavior();
 
   //checks 3G flag
-  bool _3G_flag;
-  pSystemDesc->pNvram->get(NVRAM::_3G_FLAG, _3G_flag);
+  bool no_upload_flag;
+  pSystemDesc->pNvram->get(NVRAM::NO_UPLOAD_FLAG, no_upload_flag);
 
   switch(SleepTask::getBootBehavior())
   {
   default:
   case SleepTask::BOOT_BEHAVIOR_NORMAL:
-    if(digitalRead(SF_USB_PWR_DETECT_PIN) == HIGH && !_3G_flag)
+    if(digitalRead(SF_USB_PWR_DETECT_PIN) == HIGH && !no_upload_flag)
     {
       currentState = STATE_UPLOAD;
     }

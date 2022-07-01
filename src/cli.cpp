@@ -50,9 +50,10 @@ static  CLI_menu_t const* CLI_findCommand(char const* const cmd, CLI_menu_t cons
 static int CLI_executeDebugMenu(const int cmd, CLI_debugMenu_t* menu);
 static void CLI_displayDebugMenu(CLI_debugMenu_t* menu);
 static void CLI_doCalibrateMode(void);
-static void CLI_set_3G_flag(void);
-static void CLI_set_4G_flag(void);
-static void CLI_view_3G_flag(void);
+static void CLI_set_no_upload_flag(void);
+static void CLI_disable_no_upload_flag(void);
+static void CLI_view_no_upload_flag(void);
+static void CLI_exit(void);
 
 const CLI_menu_t CLI_menu[17] =
     {
@@ -68,10 +69,10 @@ const CLI_menu_t CLI_menu[17] =
         {'M', &CLI_doMakeTestFiles},
         {'R', &CLI_doReadDeleteFiles},
         {'*', &CLI_doDebugMode},
-        {'H', &CLI_set_3G_flag},
-        {'O', &CLI_set_4G_flag},
-        {'V', &CLI_view_3G_flag},
-        {'X', NULL},
+        {'H', &CLI_set_no_upload_flag},
+        {'O', &CLI_disable_no_upload_flag},
+        {'V', &CLI_view_no_upload_flag},
+        {'X', &CLI_exit},
         {'\0', NULL}};
 
 static int CLI_displaySystemDesc(void);
@@ -174,10 +175,6 @@ STATES_e CLI::run(void)
                 {
                     SF_OSAL_printf("Unknown command\n");
                 }
-                else if(cmd->cmd == 'X') {
-                    CLI_nextState = STATE_CHARGE;
-                    break;
-                }
                 else
                 {
                     cmd->fn();
@@ -208,7 +205,7 @@ static void CLI_displayMenu(void)
         "I for Init Surf Session, U for Data Upload, D for Deep Sleep,\n"
         "F for Format Flash, Z to check filesytem, L for List Files,\n"
         "R for Read/Delete/Copy Files, M for Make Files,\n"
-        "H to set 3G mode, O to set 4G mode, V to view 3G flag,\n"
+        "H to set no_upload mode, O to disable no_upload mode, V to view no_upload flag,\n"
         "X to exit command line\n");
 }
 
@@ -810,21 +807,25 @@ static int CLI_testSleep(void)
     return 1;
 }
 
-static void CLI_set_3G_flag(void) {
-    if (!pSystemDesc->pNvram->put(NVRAM::_3G_FLAG, true)) {
+static void CLI_set_no_upload_flag(void) {
+    if (!pSystemDesc->pNvram->put(NVRAM::NO_UPLOAD_FLAG, true)) {
         SF_OSAL_printf("error setting 3G flag\n");
     }
 }
 
-static void CLI_set_4G_flag(void) {
-    if (!pSystemDesc->pNvram->put(NVRAM::_3G_FLAG, false)) {
+static void CLI_disable_no_upload_flag(void) {
+    if (!pSystemDesc->pNvram->put(NVRAM::NO_UPLOAD_FLAG, false)) {
         SF_OSAL_printf("error setting 4G flag\n");
     }
 }
 
-static void CLI_view_3G_flag(void) {
-    bool _3G_flag;
-    pSystemDesc->pNvram->get(NVRAM::_3G_FLAG, _3G_flag);
-    SF_OSAL_printf("3G flag: %d\n", _3G_flag);
+static void CLI_view_no_upload_flag(void) {
+    bool no_upload_flag;
+    pSystemDesc->pNvram->get(NVRAM::NO_UPLOAD_FLAG, no_upload_flag);
+    SF_OSAL_printf("no_upload flag: %d\n",  no_upload_flag);
 
+}
+
+static void CLI_exit(void) {
+    CLI_nextState = STATE_CHARGE;
 }
