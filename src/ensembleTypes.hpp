@@ -54,7 +54,7 @@ typedef struct Ensemble10_data_
 }Ensemble10_data_t;
 
 typedef struct Ensemble11_data_
-{
+{   
     int16_t rawTemp;
     int16_t rawAcceleration[3];
     int16_t rawAngularVel[3];
