@@ -35,6 +35,15 @@ STATES_e DataUpload::run(void)
         return STATE_DEEP_SLEEP;
     }
 
+    //checks 3G flag
+    bool _3G_flag;
+    pSystemDesc->pNvram->get(NVRAM::_3G_FLAG, _3G_flag);
+    if (_3G_flag) {
+        SF_OSAL_printf("3G module: entering sleep state\n");
+        return STATE_CHARGE;
+        //this can go to state_charge if we want to not save battery...
+    }
+
     while(1)
     {
         // Power is most important.  If we don't have enough power, don't even
