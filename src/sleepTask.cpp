@@ -54,24 +54,16 @@ void SleepTask::init(void)
             System.sleep(config);
             break;
     }
-    SYS_initFS_wrapper();
-    pSystemDesc->pChargerCheck->start();
-
+    System.reset();
 }
 
 STATES_e SleepTask::run(void)
 {
-    while(1) {
-        if (digitalRead(SF_USB_PWR_DETECT_PIN) || pSystemDesc->pWaterSensor->getCurrentReading()) {
-            return STATE_CHARGE;
-        }
-    }
-    return STATE_DEEP_SLEEP;
+    return STATE_NULL;
 }
 
 void SleepTask::exit(void)
 {
-    this->ledStatus.setActive(false);
     return;
 }
 

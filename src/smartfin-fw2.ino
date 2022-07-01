@@ -168,8 +168,8 @@ static void initializeTaskObjects(void)
   SleepTask::loadBootBehavior();
 
   //checks 3G flag
-    bool _3G_flag;
-    pSystemDesc->pNvram->get(NVRAM::_3G_FLAG, _3G_flag);
+  bool _3G_flag;
+  pSystemDesc->pNvram->get(NVRAM::_3G_FLAG, _3G_flag);
 
   switch(SleepTask::getBootBehavior())
   {

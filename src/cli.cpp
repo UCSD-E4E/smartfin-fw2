@@ -150,7 +150,7 @@ STATES_e CLI::run(void)
             return STATE_DEEP_SLEEP;
         }
 
-        if(pSystemDesc->pWaterSensor->getLastReading())
+        if(pSystemDesc->pWaterSensor->getCurrentStatus())
         {
             CLI_nextState = STATE_SESSION_INIT;
         }
@@ -175,7 +175,8 @@ STATES_e CLI::run(void)
                     SF_OSAL_printf("Unknown command\n");
                 }
                 else if(cmd->cmd == 'X') {
-                    return STATE_CHARGE;
+                    CLI_nextState = STATE_CHARGE;
+                    break;
                 }
                 else
                 {
