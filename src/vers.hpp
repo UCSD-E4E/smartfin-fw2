@@ -22,7 +22,7 @@
 #define FW_MINOR_VERSION    0
 #define FW_PATCH_VERSION    0
 #define FW_BUILD_NUM        6
-#define FW_BRANCH           "cli_deploy"
+#define FW_BRANCH           "3Gfix"
 
 void VERS_printBanner(void);
 const char* VERS_getBuildDate(void);
