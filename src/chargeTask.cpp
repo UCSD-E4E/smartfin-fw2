@@ -24,8 +24,6 @@ STATES_e ChargeTask::run(void)
 {
     const SleepTask::BOOT_BEHAVIOR_e bootBehavior = SleepTask::getBootBehavior();
     delay(1000);
-    system_tick_t usb_timeout = 0;
-    system_tick_t ptime = millis();
     while(1)
     {
         if(pSystemDesc->pWaterSensor->getLastReading())
@@ -33,18 +31,10 @@ STATES_e ChargeTask::run(void)
             return STATE_SESSION_INIT;
         }
 
-        system_tick_t time_since_last_tick = millis() - ptime;
         if (!pSystemDesc->flags->hasCharger) {
-            usb_timeout += time_since_last_tick;
-            if (usb_timeout >= CHARGE_USB_TIMEOUT) {
-                return STATE_DEEP_SLEEP;
-            }
+            return STATE_DEEP_SLEEP;
         }
-        else {
-            usb_timeout = 0;
-        }
-        ptime +=time_since_last_tick;
-
+        
         if(kbhit())
         {
             this->inputBuffer[CLI_BUFFER_LEN - 1] = getch();
