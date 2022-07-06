@@ -138,12 +138,13 @@ STATES_e DataUpload::run(void)
         Particle.process();
         lastSendTime = millis();
 
-
+        /*
         if(!pSystemDesc->pRecorder->popLastPacket(nBytesToEncode))
         {
             SF_OSAL_printf("Failed to trim!");
             return STATE_CLI;
         }
+        */
     }
 }
 
