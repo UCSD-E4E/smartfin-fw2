@@ -137,14 +137,20 @@ STATES_e DataUpload::run(void)
         SF_OSAL_printf("Uploaded record %s\n", dataPublishBuffer);
         Particle.process();
         lastSendTime = millis();
+        
+        //Creates a file to save 4G data as it gets deleted from original file.
+        SpiffsParticleFile bin_file = pSystemDesc->pFileSystem->openFile("Saved4GData", SPIFFS_O_RDWR | SPIFFS_O_CREAT);
+        for (int j = 0; j < nBytesToSend; j++)
+        {
+            bin_file.write(dataPublishBuffer[j]);
+        }
 
-        /*
         if(!pSystemDesc->pRecorder->popLastPacket(nBytesToEncode))
         {
             SF_OSAL_printf("Failed to trim!");
             return STATE_CLI;
         }
-        */
+        
     }
 }
 
