@@ -321,7 +321,7 @@ static void SS_ensemble10Func(DeploymentSchedule_t* pDeployment)
     struct
     {
         EnsembleHeader_t header;
-        union{
+        union{ //Can only use either ens10 or ens11 at a time, not both since they share the same memory location
             Ensemble10_data_t ens10;
             Ensemble11_data_t ens11;
         }data;
@@ -378,10 +378,12 @@ static void SS_ensemble10Func(DeploymentSchedule_t* pDeployment)
     {
         water = pData->water / pDeployment->measurementsToAccumulate;
         temp = pData->temperature / pDeployment->measurementsToAccumulate;
+        /*
         if(water == false)
         {
             temp -= 100;
         }
+        */
 
         ensData.header.elapsedTime_ds = Ens_getStartTime(pDeployment->startTime);
         SF_OSAL_printf("Ensemble timestamp: %d\n", ensData.header.elapsedTime_ds);
@@ -471,10 +473,12 @@ static void SS_ensemble08Func(DeploymentSchedule_t* pDeployment)
     {
         water = pData->water / pDeployment->measurementsToAccumulate;
         temp = pData->temperature / pDeployment->measurementsToAccumulate;
+        /*
         if(water == false)
         {
             temp -= 100;
         }
+        */
         
         ens.header.elapsedTime_ds = Ens_getStartTime(pDeployment->startTime);
         ens.header.ensembleType = ENS_TEMP_TIME;

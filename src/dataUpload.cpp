@@ -28,6 +28,9 @@ STATES_e DataUpload::run(void)
     int nBytesToSend;
     system_tick_t lastSendTime = 0;
     uint8_t uploadAttempts;
+    //Creates a file to save 4G data as it gets deleted from original file.
+    SpiffsParticleFile fourGFile = pSystemDesc->pFileSystem->openFile(".Saved4GData.txt", SPIFFS_O_RDWR | SPIFFS_O_CREAT);
+    fourGFile.close();
 
     if(!this->initSuccess)
     {
@@ -43,6 +46,8 @@ STATES_e DataUpload::run(void)
         return STATE_CHARGE;
         //this can go to state_charge if we want to not save battery...
     }
+
+    
 
     while(1)
     {
@@ -129,22 +134,32 @@ STATES_e DataUpload::run(void)
             // we're not connected!  abort and try again
             continue;
         }
-        if(!Particle.publish(publishName, dataPublishBuffer, PRIVATE | WITH_ACK))
-        {
-            SF_OSAL_printf("Failed to upload data!\n");
-            continue;
+        for(int i = 0; i < 3; i++){
+            if(!Particle.publish(publishName, dataPublishBuffer, PRIVATE | WITH_ACK))
+            {
+                SF_OSAL_printf("Failed to upload data!\n");
+                continue;
+            }
         }
         SF_OSAL_printf("Uploaded record %s\n", dataPublishBuffer);
+        //SF_OSAL_printf("%s", dataEncodeBuffer);
         Particle.process();
         lastSendTime = millis();
         
-        //Creates a file to save 4G data as it gets deleted from original file.
-        SpiffsParticleFile bin_file = pSystemDesc->pFileSystem->openFile("Saved4GData", SPIFFS_O_RDWR | SPIFFS_O_CREAT);
+        //ADDS DATA TO NEW 4G FILE RIGHT BEFORE IT GETS DELETED
+
+        SpiffsParticleFile fourGFile = pSystemDesc->pFileSystem->openFile(".Saved4GData.txt", SPIFFS_O_RDWR);
+        fourGFile.write((uint8_t*) dataPublishBuffer, nBytesToSend);
+        /*
         for (int j = 0; j < nBytesToSend; j++)
         {
-            bin_file.write(dataPublishBuffer[j]);
+            fourGFile.write(static_cast<uint8_t>(dataPublishBuffer[j]));
         }
+        */
 
+        fourGFile.close();
+
+        
         if(!pSystemDesc->pRecorder->popLastPacket(nBytesToEncode))
         {
             SF_OSAL_printf("Failed to trim!");

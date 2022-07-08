@@ -318,9 +318,10 @@ static void CLI_doMakeTestFiles(void)
 
     for (i = 0; i < nFiles; i++)
     {
-        memset(fname, 0, 31);
-        snprintf(fname, 31, fnameFmt, i);
+        memset(fname, 0, 31); //fills the character array fname with all 0s
+        snprintf(fname, 31, fnameFmt, i); //Instead of printing (fnameFmt, i) it saves it in fname
         bin_file = pSystemDesc->pFileSystem->openFile(fname, SPIFFS_O_RDWR | SPIFFS_O_CREAT);
+        SF_OSAL_printf("%s %s\n","HELLO", fname); //Added for testing REMOVE LATER
         memcpy(data, fname, 31);
         for (j = 0; j < nBytes; j++)
         {

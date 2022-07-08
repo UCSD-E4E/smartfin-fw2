@@ -5,7 +5,6 @@
 typedef enum EnsembleID_
 {
     ENS_TEMP = 0x01,
-    ENS_WET_DRY,
     ENS_ACC,
     ENS_GPS,
     ENS_TEMP_ACC,
