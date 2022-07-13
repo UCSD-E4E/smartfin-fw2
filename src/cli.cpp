@@ -54,8 +54,9 @@ static void CLI_set_no_upload_flag(void);
 static void CLI_disable_no_upload_flag(void);
 static void CLI_view_no_upload_flag(void);
 static void CLI_exit(void);
+static void CLI_display_battery_state(void);
 
-const CLI_menu_t CLI_menu[17] =
+const CLI_menu_t CLI_menu[18] =
     {
         {'#', &CLI_displayMenu},
         {'C', &CLI_doCalibrateMode},
@@ -73,6 +74,7 @@ const CLI_menu_t CLI_menu[17] =
         {'O', &CLI_disable_no_upload_flag},
         {'V', &CLI_view_no_upload_flag},
         {'X', &CLI_exit},
+        {'B', &CLI_display_battery_state},
         {'\0', NULL}};
 
 static int CLI_displaySystemDesc(void);
@@ -828,4 +830,9 @@ static void CLI_view_no_upload_flag(void) {
 
 static void CLI_exit(void) {
     CLI_nextState = STATE_CHARGE;
+}
+
+static void CLI_display_battery_state(void) {
+    SF_OSAL_printf("Battery percentage: %f\n", pSystemDesc->pBattery->getSoC());
+    SF_OSAL_printf("Battery voltage: %f\n", pSystemDesc->pBattery->getVCell());
 }
