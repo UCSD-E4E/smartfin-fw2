@@ -101,6 +101,17 @@ void setup()
       SF_OSAL_printf("\n");
     }
   }
+
+  #ifdef SF_ENABLE_DEBUG_DELAY
+  #warning Initialization delay enabled!
+  SF_OSAL_printf("Waiting ");
+  for(i = 0; i < SF_ENABLE_DEBUG_DELAY; i++)
+  {
+    SF_OSAL_printf("%d  ", i);
+    delay(1000);
+  }
+  SF_OSAL_printf("\n");
+  #endif
   RESET_GOOD = 0;
   nRESET_GOOD = 0;
 

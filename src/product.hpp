@@ -195,4 +195,10 @@
  * 
  */
 #define SF_BATTERY_MAX_VOLTAGE 4.3
+
+/**
+ * @brief Enable initialization delay
+ * 
+ */
+#define SF_ENABLE_DEBUG_DELAY   15
 #endif
