@@ -10,6 +10,7 @@ class FileCLI{
     FileCLI(void);
     void execute(void);
     ~FileCLI(void);
+    spiffs_dirent dirEnt;
 
     void doNextFile(void);
     void copyFile(void);
@@ -24,7 +25,7 @@ class FileCLI{
     int loopFile = 1;
     int loopApp = 1;
     spiffs_DIR dir;
-    spiffs_dirent dirEnt;
+    
 };
 
 #endif

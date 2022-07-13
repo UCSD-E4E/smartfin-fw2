@@ -96,7 +96,7 @@ void FileCLI::doNextFile(void)
     this->loopFile = 0;
 }
 
-void FileCLI::copyFile(void)
+void FileCLI::copyFile()
 {
     int i;
     char copyFileName[33];
@@ -104,7 +104,7 @@ void FileCLI::copyFile(void)
     SpiffsParticleFile binFile;
     for(i = 0; i < 100; i++)
     {
-        snprintf(copyFileName, 32, "copy_%02d", i);
+        snprintf(copyFileName, 32, "_copy_%02d", i);
 
         copyFile = pSystemDesc->pFileSystem->openFile(copyFileName, SPIFFS_O_RDONLY);
 
@@ -121,7 +121,7 @@ void FileCLI::copyFile(void)
     }
     copyFile = pSystemDesc->pFileSystem->openFile(copyFileName, SPIFFS_O_RDWR | SPIFFS_O_CREAT);
 
-    binFile = pSystemDesc->pFileSystem->openFile((char*)this->dirEnt.name, SPIFFS_O_RDONLY);
+    binFile = pSystemDesc->pFileSystem->openFile((char*)dirEnt.name, SPIFFS_O_RDONLY);
     binFile.lseek(0, SPIFFS_SEEK_SET);
 
     while(!binFile.eof())

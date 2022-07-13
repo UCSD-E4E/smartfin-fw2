@@ -57,6 +57,7 @@ int Deployment::write(void* pData, size_t nBytes)
     }
     bytesWritten = this->currentFile.write((uint8_t*) pData, nBytes);
     this->currentFile.flush();
+
     return bytesWritten;
 }
 
@@ -83,12 +84,17 @@ int Deployment::read(void* pData, size_t nBytes)
  */
 int Deployment::close(void)
 {
+    SpiffsParticleFile fourGFile = pSystemDesc->pFileSystem->openFile(".Saved4GData.txt", SPIFFS_O_RDWR | SPIFFS_O_CREAT);
+    fourGFile.write(this->currentFile.read());
+
+
     if(!this->currentFile.isValid())
     {
         return 1;
     }
     this->currentFile.flush();
     this->currentFile.close();
+    fourGFile.close();
     return 1;
 }
 

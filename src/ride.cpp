@@ -234,7 +234,7 @@ STATES_e RideTask::run(void)
                 SF_OSAL_printf("GPS Location Lock @ %dms\n", millis());
                 this->gpsLocked = true;
             }
-            this->ledStatus.setColor(RIDE_RGB_LED_COLOR);
+            this->ledStatus.setColor(RIDE_RGB_LED_COLOR); //Repeat of code from above
             this->ledStatus.setPattern(RIDE_RGB_LED_PATTERN_NOGPS);
             this->ledStatus.setPeriod(RIDE_RGB_LED_PERIOD_NOGPS);
             this->ledStatus.setPriority(RIDE_RGB_LED_PRIORITY);
@@ -376,8 +376,11 @@ static void SS_ensemble10Func(DeploymentSchedule_t* pDeployment)
     // Report accumulated measurements
     if(pData->accumulateCount == pDeployment->measurementsToAccumulate)
     {
+        SF_OSAL_printf("%d %d\n",water, temp); //For testing
         water = pData->water / pDeployment->measurementsToAccumulate;
         temp = pData->temperature / pDeployment->measurementsToAccumulate;
+        SF_OSAL_printf("%d %d\n",water, temp); //For testing
+
         /*
         if(water == false)
         {

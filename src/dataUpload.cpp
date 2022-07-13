@@ -148,7 +148,6 @@ STATES_e DataUpload::run(void)
         
         //ADDS DATA TO NEW 4G FILE RIGHT BEFORE IT GETS DELETED
 
-        SpiffsParticleFile fourGFile = pSystemDesc->pFileSystem->openFile(".Saved4GData.txt", SPIFFS_O_RDWR);
         fourGFile.write((uint8_t*) dataPublishBuffer, nBytesToSend);
         /*
         for (int j = 0; j < nBytesToSend; j++)
