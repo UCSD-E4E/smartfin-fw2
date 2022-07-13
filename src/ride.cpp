@@ -378,12 +378,12 @@ static void SS_ensemble10Func(DeploymentSchedule_t* pDeployment)
     {
         water = pData->water / pDeployment->measurementsToAccumulate;
         temp = pData->temperature / pDeployment->measurementsToAccumulate;
-        /* temporary fix to prevent temperature from defaulting to nan if no water detect
+        // If temp is greater than 100, water detect is false
         if(water == false)
         {
-            temp -= 100;
+            temp += 100;
         }
-        */
+        
 
         ensData.header.elapsedTime_ds = Ens_getStartTime(pDeployment->startTime);
         SF_OSAL_printf("Ensemble timestamp: %d\n", ensData.header.elapsedTime_ds);
@@ -473,12 +473,12 @@ static void SS_ensemble08Func(DeploymentSchedule_t* pDeployment)
     {
         water = pData->water / pDeployment->measurementsToAccumulate;
         temp = pData->temperature / pDeployment->measurementsToAccumulate;
-        /* temporary fix to prevent temperature from defaulting to nan if no water detect
+        // If temp is greater than 100, water detect is false
         if(water == false)
         {
-            temp -= 100;
+            temp += 100;
         }
-        */
+        
         
         ens.header.elapsedTime_ds = Ens_getStartTime(pDeployment->startTime);
         ens.header.ensembleType = ENS_TEMP_TIME;
