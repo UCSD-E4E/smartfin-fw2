@@ -54,8 +54,9 @@ static void CLI_set_no_upload_flag(void);
 static void CLI_disable_no_upload_flag(void);
 static void CLI_view_no_upload_flag(void);
 static void CLI_exit(void);
+static void CLI_self_identify(void);
 
-const CLI_menu_t CLI_menu[17] =
+const CLI_menu_t CLI_menu[18] =
     {
         {'#', &CLI_displayMenu},
         {'C', &CLI_doCalibrateMode},
@@ -72,6 +73,7 @@ const CLI_menu_t CLI_menu[17] =
         {'H', &CLI_set_no_upload_flag},
         {'O', &CLI_disable_no_upload_flag},
         {'V', &CLI_view_no_upload_flag},
+        {'S', &CLI_self_identify},
         {'X', &CLI_exit},
         {'\0', NULL}};
 
@@ -206,7 +208,7 @@ static void CLI_displayMenu(void)
         "F for Format Flash, Z to check filesytem, L for List Files,\n"
         "R for Read/Delete/Copy Files, M for Make Files,\n"
         "H to set no_upload mode, O to disable no_upload mode, V to view no_upload flag,\n"
-        "X to exit command line\n");
+        "S to print self id information, X to exit command line\n");
 }
 
 static CLI_menu_t const* CLI_findCommand( char const* const cmd, CLI_menu_t const* const menu)
@@ -828,4 +830,9 @@ static void CLI_view_no_upload_flag(void) {
 
 static void CLI_exit(void) {
     CLI_nextState = STATE_CHARGE;
+}
+
+static void CLI_self_identify(void) {
+    SF_OSAL_printf("Smartfin ID: %s\n", pSystemDesc->deviceID);
+    VERS_printBanner();
 }
