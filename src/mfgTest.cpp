@@ -18,14 +18,14 @@ static bool verify_yes_or_no(const char * prompt_text);
 static int led_test(SFLed* pin);
 
 int(* (MfgTest::MFG_TEST_TABLE)[])(void) = {
+    &MfgTest::battery_status_test,
+    &MfgTest::battery_voltage_test,
     &MfgTest::gps_test,
     &MfgTest::imu_test,
     &MfgTest::temperature_sensor_test,
-    &MfgTest::cellular_test,
     &MfgTest::wet_dry_sensor_test,
     &MfgTest::status_led_test,
-    &MfgTest::battery_status_test,
-    &MfgTest::battery_voltage_test,
+    &MfgTest::cellular_test,
     NULL
 };
 
