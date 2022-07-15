@@ -53,9 +53,10 @@ static void CLI_doCalibrateMode(void);
 static void CLI_set_no_upload_flag(void);
 static void CLI_disable_no_upload_flag(void);
 static void CLI_view_no_upload_flag(void);
+static void CLI_forceSession(void);
 static void CLI_exit(void);
 
-const CLI_menu_t CLI_menu[17] =
+const CLI_menu_t CLI_menu[18] =
     {
         {'#', &CLI_displayMenu},
         {'C', &CLI_doCalibrateMode},
@@ -73,6 +74,7 @@ const CLI_menu_t CLI_menu[17] =
         {'O', &CLI_disable_no_upload_flag},
         {'V', &CLI_view_no_upload_flag},
         {'X', &CLI_exit},
+        {'S', &CLI_forceSession},
         {'\0', NULL}};
 
 static int CLI_displaySystemDesc(void);
@@ -201,12 +203,12 @@ void CLI::exit(void)
 static void CLI_displayMenu(void)
 {
     SF_OSAL_printf(
-        "T for MFG Test, C for C for Calibrate Mode, B for Battery State,\n"
+        "T for MFG Test, C for Calibrate Mode, B for Battery State,\n"
         "I for Init Surf Session, U for Data Upload, D for Deep Sleep,\n"
         "F for Format Flash, Z to check filesytem, L for List Files,\n"
         "R for Read/Delete/Copy Files, M for Make Files,\n"
         "H to set no_upload mode, O to disable no_upload mode, V to view no_upload flag,\n"
-        "X to exit command line\n");
+        "S to force session, X to exit command line\n");
 }
 
 static CLI_menu_t const* CLI_findCommand( char const* const cmd, CLI_menu_t const* const menu)
@@ -666,6 +668,48 @@ static int CLI_clearFLOG(void)
     return 1;
 }
 
+static void CLI_forceSession(void)
+{       
+        SF_OSAL_printf("About to force a session\n");
+        
+        /**
+        SF_OSAL_printf("Enter delay: \n");
+        char userInput[32];
+        getline(userInput, 32);
+        if(1 != sscanf(userInput, "%hhu"))
+        {
+            SF_OSAL_printf("Unknown input!\n");
+           return;
+        }
+
+        delay((int)userInput);
+        */
+
+
+        SF_OSAL_printf("Forcing a session...\n");
+        
+        CLI_nextState = STATE_DEPLOYED;
+        pSystemDesc->pWaterSensor->resetArray();
+        // change window to small window (smaller moving average for quick detect)
+        pSystemDesc->pWaterSensor->setWindowSize(WATER_DETECT_SURF_SESSION_INIT_WINDOW);
+        // set the initial state to "not in water" (because hystersis)
+        pSystemDesc->pWaterSensor->forceState(WATER_SENSOR_LOW_STATE);
+        #if ICM20648_ENABLED
+            // set in-water
+            digitalWrite(WATER_MFG_TEST_EN, HIGH);
+        #endif
+
+        for (int i = 0; i < 100; i++)
+        {
+            pSystemDesc->pWaterSensor->takeReading();
+        }
+
+        SF_OSAL_printf("Wet dry sensor: %d", pSystemDesc->pWaterSensor->takeReading());
+
+
+        SF_OSAL_printf("Now deployed!");
+}
+
 static void CLI_doCalibrateMode(void)
 {
     char userInput[32];
@@ -747,11 +791,11 @@ static int CLI_executeMfgPeripheralTest(void)
         "GPS Test",
         "IMU Test",
         "Temperature Test",
-        "Cellular Test",
         "Wet/Dry Sensor Test",
         "Status LED Test",
         "Battery Status Test",
         "Battery Voltage Test",
+        "Cellular Test",
         NULL
     };
     char userInput[SF_OSAL_LINE_WIDTH];
