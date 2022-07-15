@@ -200,5 +200,5 @@
  * @brief Enable initialization delay
  * 
  */
-#define SF_ENABLE_DEBUG_DELAY   15
+// #define SF_ENABLE_DEBUG_DELAY   15
 #endif
