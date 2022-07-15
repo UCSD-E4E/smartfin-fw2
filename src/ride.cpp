@@ -378,10 +378,9 @@ static void SS_ensemble10Func(DeploymentSchedule_t* pDeployment)
     {
         water = pData->water / pDeployment->measurementsToAccumulate;
         temp = pData->temperature / pDeployment->measurementsToAccumulate;
-        // If temp is greater than 100, water detect is false
         if(water == false)
         {
-            temp += 100;
+            temp -= 100;
         }
         
 
@@ -473,10 +472,9 @@ static void SS_ensemble08Func(DeploymentSchedule_t* pDeployment)
     {
         water = pData->water / pDeployment->measurementsToAccumulate;
         temp = pData->temperature / pDeployment->measurementsToAccumulate;
-        // If temp is greater than 100, water detect is false
         if(water == false)
         {
-            temp += 100;
+            temp -= 100;
         }
         
         
