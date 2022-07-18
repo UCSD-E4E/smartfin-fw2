@@ -259,6 +259,14 @@ STATES_e RideTask::run(void)
         pNextEvent->lastExecuteTime = nextEventTime;
         pNextEvent->measurementCount++;
 
+        //SF_OSAL_printf("difference: %d\n", millis() - pSystemDesc->startTime);
+        //SF_OSAL_printf("water sensor turning off?: %d\n", millis() - pSystemDesc->startTime > pSystemDesc->sessionLength);
+        
+        if(millis() - pSystemDesc->startTime > pSystemDesc->sessionLength)
+        {
+            digitalWrite(WATER_MFG_TEST_EN, WATER_SENSOR_LOW_STATE);
+        }
+        
         if(pSystemDesc->pWaterSensor->getLastStatus() == WATER_SENSOR_LOW_STATE)
         {
             SF_OSAL_printf("Out of water!\n");
@@ -376,7 +384,7 @@ static void SS_ensemble10Func(DeploymentSchedule_t* pDeployment)
     // Report accumulated measurements
     if(pData->accumulateCount == pDeployment->measurementsToAccumulate)
     {
-        water = pData->water / pDeployment->measurementsToAccumulate;
+        water = (pData->water / pDeployment->measurementsToAccumulate) > 0;
         temp = pData->temperature / pDeployment->measurementsToAccumulate;
         if(water == false)
         {

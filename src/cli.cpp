@@ -49,6 +49,8 @@ static void CLI_doDebugMode(void);
 static  CLI_menu_t const* CLI_findCommand(char const* const cmd, CLI_menu_t const* const menu);
 static int CLI_executeDebugMenu(const int cmd, CLI_debugMenu_t* menu);
 static void CLI_displayDebugMenu(CLI_debugMenu_t* menu);
+static void CLI_accelCalibrate(void);
+static void CLI_gyroCalibrate(void);
 static void CLI_doCalibrateMode(void);
 static void CLI_set_no_upload_flag(void);
 static void CLI_disable_no_upload_flag(void);
@@ -56,7 +58,7 @@ static void CLI_view_no_upload_flag(void);
 static void CLI_forceSession(void);
 static void CLI_exit(void);
 
-const CLI_menu_t CLI_menu[18] =
+const CLI_menu_t CLI_menu[20] =
     {
         {'#', &CLI_displayMenu},
         {'C', &CLI_doCalibrateMode},
@@ -75,6 +77,8 @@ const CLI_menu_t CLI_menu[18] =
         {'V', &CLI_view_no_upload_flag},
         {'X', &CLI_exit},
         {'S', &CLI_forceSession},
+        {'A',CLI_accelCalibrate},
+        {'G',CLI_gyroCalibrate},
         {'\0', NULL}};
 
 static int CLI_displaySystemDesc(void);
@@ -203,11 +207,12 @@ void CLI::exit(void)
 static void CLI_displayMenu(void)
 {
     SF_OSAL_printf(
-        "T for MFG Test, C for Calibrate Mode, B for Battery State,\n"
+        "T for MFG Test, B for Battery State,\n"
         "I for Init Surf Session, U for Data Upload, D for Deep Sleep,\n"
         "F for Format Flash, Z to check filesytem, L for List Files,\n"
         "R for Read/Delete/Copy Files, M for Make Files,\n"
         "H to set no_upload mode, O to disable no_upload mode, V to view no_upload flag,\n"
+        "Calibrate modes: C:temp, A:accelerometer, G:gyro, MM:magnetometer,\n"
         "S to force session, X to exit command line\n");
 }
 
@@ -501,6 +506,81 @@ static int CLI_setLEDs(void)
     }
 }
 
+
+static void CLI_accelCalibrate(void)
+{
+    uint16_t accelRawData[3];
+    uint16_t gyroRawData[3];
+    uint16_t magRawData[3];
+    float accelData[3];
+    float gyroData[3];
+    int16_t magData[3];
+    float temp;
+    uint8_t waterDetect;
+    double location[2];
+  
+    if(!pSystemDesc->pIMU->open())
+    {
+        SF_OSAL_printf("IMU Fail\n");
+    }
+
+    SF_OSAL_printf("%6s\t%8s\t%8s\t%8s\n", "time", "xAcc", "yAcc", "zAcc", "xAng", "yAng", "zAng");
+    // SF_OSAL_printf("%6s\t%8s\n", "time", "temp");
+    while(!kbhit())
+    {
+        pSystemDesc->pIMU->get_accelerometer(accelData, accelData + 1, accelData + 2);
+        pSystemDesc->pIMU->get_accel_raw_data((uint8_t*) accelRawData);
+
+        // SF_OSAL_printf("Time between: %08.2f\r", elapsed / count);
+        SF_OSAL_printf("%6d\t%8.4f\t%8.4f\t%8.4f\r", millis(), 
+            accelData[0], accelData[1], accelData[2]);
+    }
+    SF_OSAL_printf("\n");
+    while(kbhit())
+    {
+        getch();
+    }
+    pSystemDesc->pIMU->close();
+}
+
+
+static void CLI_gyroCalibrate(void)
+{
+    uint16_t accelRawData[3];
+    uint16_t gyroRawData[3];
+    uint16_t magRawData[3];
+    float accelData[3];
+    float gyroData[3];
+    int16_t magData[3];
+    float temp;
+    uint8_t waterDetect;
+    double location[2];
+
+    if(!pSystemDesc->pCompass->open())
+    {
+        SF_OSAL_printf("Mag Fail\n");
+    }
+    
+    SF_OSAL_printf("%6s\t%8s\t%8s\t%8s\n", "time", "xAng", "yAng", "zAng");
+    // SF_OSAL_printf("%6s\t%8s\n", "time", "temp");
+    while(!kbhit())
+    {
+        pSystemDesc->pIMU->get_gyroscope(gyroData, gyroData + 1, gyroData + 2);
+        pSystemDesc->pIMU->get_gyro_raw_data((uint8_t*) gyroRawData);
+
+        // SF_OSAL_printf("Time between: %08.2f\r", elapsed / count);
+        SF_OSAL_printf("%6d\t%8.4f\t%8.4f\t%8.4f\r", millis(), 
+            gyroData[0], gyroData[1], gyroData[2]);
+    }
+    SF_OSAL_printf("\n");
+    while(kbhit())
+    {
+        getch();
+    }
+    pSystemDesc->pIMU->close();
+}
+
+
 static int CLI_monitorSensors(void)
 {
     uint16_t accelRawData[3];
@@ -670,25 +750,25 @@ static int CLI_clearFLOG(void)
 
 static void CLI_forceSession(void)
 {       
-        SF_OSAL_printf("About to force a session\n");
-        
-        /**
-        SF_OSAL_printf("Enter delay: \n");
         char userInput[32];
+        system_tick_t num;
+        system_tick_t oneSec;
+        oneSec = 1000; 
+        SF_OSAL_printf("About to force a session\n");
+
+        SF_OSAL_printf("Forcing a session...\n");
+        SF_OSAL_printf("Enter length of forcing water sensor (s): \n");
+        
         getline(userInput, 32);
-        if(1 != sscanf(userInput, "%hhu"))
+        if(1 != sscanf(userInput, "%hhu",&num))
         {
             SF_OSAL_printf("Unknown input!\n");
            return;
         }
-
-        delay((int)userInput);
-        */
-
-
-        SF_OSAL_printf("Forcing a session...\n");
+        pSystemDesc->startTime = millis();
+        pSystemDesc->sessionLength = num*oneSec;
         
-        CLI_nextState = STATE_DEPLOYED;
+        CLI_nextState = STATE_SESSION_INIT;
         pSystemDesc->pWaterSensor->resetArray();
         // change window to small window (smaller moving average for quick detect)
         pSystemDesc->pWaterSensor->setWindowSize(WATER_DETECT_SURF_SESSION_INIT_WINDOW);

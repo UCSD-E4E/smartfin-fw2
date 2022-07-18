@@ -50,7 +50,7 @@ void TemperatureCal::init(void)
     TCAL_ledStatus.setPattern(TCAL_RGB_LED_PATTERN);
     TCAL_ledStatus.setPeriod(TCAL_RGB_LED_PERIOD);
     TCAL_ledStatus.setPriority(TCAL_RGB_LED_PRIORITY);
-    TCAL_ledStatus.setActive();
+    TCAL_ledStatus.setActive(); 
 
     pSystemDesc->pTempSensor->init();
 
@@ -203,6 +203,7 @@ static void SS_ensemble08Func(DeploymentSchedule_t* pDeployment)
         ens.ensData.rawTemp = N_TO_B_ENDIAN_2(temp / 0.0078125);
 
         pSystemDesc->pRecorder->putData(ens);
+        //clears the data off of pdata
         memset(pData, 0, sizeof(Ensemble08_eventData_t));
     }
 

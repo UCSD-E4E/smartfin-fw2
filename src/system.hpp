@@ -46,6 +46,8 @@ typedef struct SystemDesc_
     AK09916* pCompass;
     TimeClass* pTime;
     const SystemFlags_t* flags;
+    system_tick_t startTime;
+    system_tick_t sessionLength;
 }SystemDesc_t;
 
 extern SystemDesc_t* pSystemDesc;
