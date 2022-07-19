@@ -21,8 +21,8 @@
 #define FW_MAJOR_VERSION    2
 #define FW_MINOR_VERSION    0
 #define FW_PATCH_VERSION    0
-#define FW_BUILD_NUM        6
-#define FW_BRANCH           "cli_deploy"
+#define FW_BUILD_NUM        8
+#define FW_BRANCH           ""
 
 void VERS_printBanner(void);
 const char* VERS_getBuildDate(void);
