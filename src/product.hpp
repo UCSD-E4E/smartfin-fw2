@@ -212,5 +212,5 @@
  * product version
  * 
  */
-#define PRODUCT_VERSION_USE_HEX 1
+#define PRODUCT_VERSION_USE_HEX 0
 #endif
