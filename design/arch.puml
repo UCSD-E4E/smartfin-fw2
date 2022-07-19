@@ -1,0 +1,60 @@
+@startuml Class Diagram
+class Task {
+    void init()
+    STATES_e run()
+    void exit()
+}
+class ChargeTask extends Task
+class CLI extends Task
+class DataUpload extends Task
+class MfgTest extends Task
+class RideInitTask extends Task
+class RideTask extends Task
+class SleepTask extends Task
+class TemperatureCal extends Task
+
+class AK09916{
+    bool open()
+    void close()
+    bool read()
+}
+class SystemDesc{
+    SpiffsParticle* pFileSystem
+    PMIC* pmic
+    FuelGauge* pBattery
+    NVRAM* pNvram
+    const char* deviceID
+    WaterSensor* pWaterSensor
+    SFLed* pBatteryLED
+    SFLed* pWaterLED
+    Timer* pChargerCheck
+    Timer* pWaterCheck
+    LEDSystemTheme* systemTheme
+    Recorder* pRecorder
+    TinyGPSPlus* pGPS
+    ICM20648* pIMU
+    tmpSensor* pTempSensor
+    AK09916* pCompass
+    TimeClass* pTime
+    const SystemFlags_t* flags
+}
+class SystemFlags_t{
+    bool batteryLow
+    bool hasCharger
+    bool inWater
+}
+SystemDesc o-- AK09916
+SystemDesc o-- SpiffsParticle
+SystemDesc o-- PMIC
+SystemDesc o-- FuelGauge
+SystemDesc o-- NVRAM
+SystemDesc o-- WaterSensor
+SystemDesc o-- SFLed
+SystemDesc o-- Timer
+SystemDesc o-- LEDSystemTheme
+SystemDesc o-- Recorder
+SystemDesc o-- TinyGPSPlus
+SystemDesc o-- tmpSensor
+SystemDesc o-- TimeClass
+SystemDesc o-- SystemFlags_t
+@enduml
