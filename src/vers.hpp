@@ -6,6 +6,7 @@
  * DATE     WHO DESCRIPTION
  * ----------------------------------------------------------------------------
  * 06/11/22 NH  v2.0.0.6
+ *              - Bug fix for smartfin-fw2#27 - adding w/d trip to upload
  *              - Updating versioning
  *              - Bug fix for smartfin-fw2#33
  *              - Bug fix for smartfin-fw2#30 - adding CLI monitoring of water
@@ -24,7 +25,7 @@
 
 #define FW_MAJOR_VERSION    2
 #define FW_MINOR_VERSION    0
-#define FW_BUILD_NUM        8
+#define FW_BUILD_NUM        9
 #define FW_BRANCH           "fw_version"
 
 #if PRODUCT_VERSION_USE_HEX == 1

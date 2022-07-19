@@ -27,6 +27,7 @@ STATES_e DataUpload::run(void)
     int nBytesToEncode;
     int nBytesToSend;
     system_tick_t lastSendTime = 0;
+    system_tick_t startConnectTime = 0;
     uint8_t uploadAttempts;
 
     if(!this->initSuccess)
@@ -54,8 +55,25 @@ STATES_e DataUpload::run(void)
         }
 
         // set up connection
+        startConnectTime = millis();
+        while(1)
+        {
+            if(pSystemDesc->pWaterSensor->getCurrentStatus())
+            {
+                return STATE_SESSION_INIT;
+            }
+            if(millis() - startConnectTime > SF_CELL_SIGNAL_TIMEOUT_MS)
+            {
+                break;
+            }
+            if(Particle.connected())
+            {
+                break;
+            }
+            os_thread_yield();
+        }
 
-        if(!waitFor(Particle.connected, SF_CELL_SIGNAL_TIMEOUT_MS))
+        if(!Particle.connected())
         {
             SF_OSAL_printf("Fail to connect\n");
             if(SleepTask::getBootBehavior() != SleepTask::BOOT_BEHAVIOR_UPLOAD_REATTEMPT)
