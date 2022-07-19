@@ -131,8 +131,19 @@ STATES_e CLI::run(void)
 
     lastKeyPressTime = millis();
     SF_OSAL_printf(">");
-    while (millis() < lastKeyPressTime + CLI_NO_INPUT_TIMEOUT_MS && CLI_nextState == STATE_CLI)
+    while (1)
     {
+        if(millis() >= lastKeyPressTime + CLI_NO_INPUT_TIMEOUT_MS) {
+            CLI_nextState = STATE_CHARGE;
+        }
+        if(pSystemDesc->pWaterSensor->getCurrentStatus())
+        {
+            CLI_nextState = STATE_SESSION_INIT;
+        }
+        if (CLI_nextState != STATE_CLI)
+        {
+            break;
+        }
         if (kbhit())
         {
             userInput = getch();
