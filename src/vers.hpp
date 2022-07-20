@@ -23,7 +23,7 @@
 #define FW_MINOR_VERSION    0
 #define FW_PATCH_VERSION    0
 #define FW_BUILD_NUM        9
-#define FW_BRANCH           ""
+#define FW_BRANCH           "cloud_upload"
 
 void VERS_printBanner(void);
 const char* VERS_getBuildDate(void);
