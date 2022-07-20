@@ -201,4 +201,11 @@
  * 
  */
 // #define SF_ENABLE_DEBUG_DELAY   15
+
+/**
+ * @brief Time fin stays in charge state with unplugged USB
+ * 
+ */
+#define CHARGE_USB_TIMEOUT   1000
+
 #endif
