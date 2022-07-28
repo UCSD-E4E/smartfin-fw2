@@ -49,6 +49,7 @@ const FLOG_Message_t FLOG_Message[] = {
     {FLOG_MAG_MEAS_TO, "Compass Measurement Timeout"},
     {FLOG_MAG_TEST_FAIL, "Compass Self-Test Failure"},
     {FLOG_MAG_MEAS_OVRFL, "Compass Measurement Overflow"},
+    {FLOG_MAG_I2C_FAIL, "Compass I2C Failure"},
     {FLOG_NULL, NULL}
 };
 

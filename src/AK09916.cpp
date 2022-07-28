@@ -52,7 +52,7 @@
 // Control 3
 #define AK09916_CNTL3_SRST          (0x01)  // Soft reset
 
-#define MEASUREMENT_TIMEOUT_MS      (30)
+#define MEASUREMENT_TIMEOUT_MS      (300)
 
 AK09916::AK09916(uint8_t address)
 {
@@ -72,6 +72,10 @@ bool AK09916::open(void)
 
     // Soft reset
     write_register(AK09916_CNTL3, AK09916_CNTL3_SRST);
+    delay(50);
+
+    // Set power down mode
+    write_register(AK09916_CNTL2, AK09916_CNTL2_PWRDWN_MODE);
     delay(50);
 
     // Set to self test mode
@@ -202,8 +206,16 @@ bool AK09916::read(uint8_t* data)
  ******************************************************************************/
 void AK09916::read_register(uint8_t addr, int numBytes, uint8_t* data)
 {
-    m_I2C.write(m_address, (const char*)&addr, sizeof(addr), true);
-    m_I2C.read(m_address, (char*)data, numBytes, false);
+    if(m_I2C.write(m_address, (const char*)&addr, sizeof(addr), true))
+    {
+        FLOG_AddError(FLOG_MAG_I2C_FAIL, 0);
+        return;
+    }
+    if(m_I2C.read(m_address, (char*)data, numBytes, false))
+    {
+        FLOG_AddError(FLOG_MAG_I2C_FAIL, 1);
+        return;
+    }
 }
 
 /***************************************************************************//**
@@ -222,5 +234,9 @@ void AK09916::read_register(uint8_t addr, int numBytes, uint8_t* data)
 void AK09916::write_register(uint8_t addr, uint8_t data)
 {
     uint8_t bytes[] = { addr, data };
-    m_I2C.write(m_address, (const char*)bytes, sizeof(bytes), false);
+    if(m_I2C.write(m_address, (const char*)bytes, sizeof(bytes), false))
+    {
+        FLOG_AddError(FLOG_MAG_I2C_FAIL, 2);
+        return;
+    }
 }
