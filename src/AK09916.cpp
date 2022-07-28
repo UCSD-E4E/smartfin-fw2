@@ -125,7 +125,7 @@ bool AK09916::open(void)
     }
 
     // Set to power down mode
-    write_register(AK09916_CNTL2, AK09916_CNTL2_PWRDWN_MODE);
+    // write_register(AK09916_CNTL2, AK09916_CNTL2_PWRDWN_MODE);
     
     return true;
 }
