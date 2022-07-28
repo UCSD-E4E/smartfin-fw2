@@ -505,7 +505,7 @@ static void SS_fwVerFunc(DeploymentSchedule_t* pDeployment)
     ens.header.elapsedTime_ds = Ens_getStartTime(pDeployment->startTime);
     ens.header.ensembleType = ENS_TEXT;
 
-    ens.nChars = snprintf(ens.verBuf, 32, "FW%d.%d.%d.%d%s", FW_MAJOR_VERSION, FW_MINOR_VERSION, FW_PATCH_VERSION, FW_BUILD_NUM, FW_BRANCH);
+    ens.nChars = snprintf(ens.verBuf, 32, "FW%d.%d.%d.%d%s", FW_MAJOR_VERSION, FW_MINOR_VERSION, FW_BUILD_NUM, FW_BRANCH);
     pSystemDesc->pRecorder->putBytes(&ens, sizeof(EnsembleHeader_t) + sizeof(uint8_t) + ens.nChars);
 
 }
