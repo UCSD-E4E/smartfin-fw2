@@ -28,6 +28,7 @@ typedef enum FLOG_CODE_
     FLOG_MAG_TEST_FAIL    =0x0303,
     FLOG_MAG_MEAS_OVRFL   =0x0304,
     FLOG_MAG_I2C_FAIL     =0x0305,
+    FLOG_MAG_MODE_FAIL    =0x0306,
 }FLOG_CODE_e;
 
 void FLOG_Initialize(void);
