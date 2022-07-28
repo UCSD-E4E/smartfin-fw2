@@ -160,13 +160,14 @@ bool AK09916::read(uint8_t* data)
 
     // Set to single measurement mode
     write_register(AK09916_CNTL2, AK09916_CNTL2_SINGLE_MODE);
+    read_register(AK09916_CNTL2, sizeof(uint8_t), &reg);
 
     // Wait no more than MEASUREMENT_TIMEOUT_MS for data ready
     system_tick_t start_ms = millis();
     while  (millis() - start_ms <= MEASUREMENT_TIMEOUT_MS)
     {
         // Check for sensor overflow
-        read_register(AK09916_ST2, sizeof(reg), &reg);
+        read_register(AK09916_ST2, sizeof(uint8_t), &reg);
         if (reg & AK09916_ST2_HOFL)
         {
             memset(data, -1, AK09916_SENSOR_DATA_SZ);
@@ -175,7 +176,7 @@ bool AK09916::read(uint8_t* data)
         }
 
         // Check if data ready
-        read_register(AK09916_ST1, sizeof(reg), &reg);
+        read_register(AK09916_ST1, sizeof(uint8_t), &reg);
         if ((reg & AK09916_ST1_DRDY) == AK09916_ST1_DRDY)
         {
             break;
@@ -192,7 +193,7 @@ bool AK09916::read(uint8_t* data)
     read_register(AK09916_HXL, AK09916_SENSOR_DATA_SZ, data);
 
     // Read STAT2 after reading data
-    read_register(AK09916_ST2, sizeof(reg), &reg);
+    read_register(AK09916_ST2, sizeof(uint8_t), &reg);
 
     return true;
 }
