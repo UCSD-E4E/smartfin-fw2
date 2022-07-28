@@ -52,7 +52,7 @@
 // Control 3
 #define AK09916_CNTL3_SRST          (0x01)  // Soft reset
 
-#define MEASUREMENT_TIMEOUT_MS      (300)
+#define MEASUREMENT_TIMEOUT_MS      (30)
 
 /**
  * @brief Sensor data size
