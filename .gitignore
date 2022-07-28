@@ -1,5 +1,4 @@
 target/
 
 src/smartfin-fw2.cpp
-
 electron_firmware_*.bin

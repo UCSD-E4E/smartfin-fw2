@@ -29,12 +29,14 @@ void SleepTask::init(void)
     pSystemDesc->pNvram->put(NVRAM::BOOT_BEHAVIOR, SleepTask::bootBehavior);
     pSystemDesc->pNvram->put(NVRAM::NVRAM_VALID, true);
 
+
     // bring down the system safely
     SYS_deinitSys();
 
     switch(SleepTask::bootBehavior)
     {
         case BOOT_BEHAVIOR_UPLOAD_REATTEMPT:
+            SF_OSAL_printf("REUPLOAD\n\n\n");
             if(digitalRead(WKP_PIN) == HIGH)
             {
                 System.sleep(SLEEP_MODE_SOFTPOWEROFF);
@@ -45,19 +47,18 @@ void SleepTask::init(void)
                 System.sleep(SLEEP_MODE_SOFTPOWEROFF, SF_UPLOAD_REATTEMPT_DELAY_SEC);
             }
         default:
-            System.sleep(SLEEP_MODE_SOFTPOWEROFF);
+            digitalWrite(WKP, LOW);
+            SystemSleepConfiguration config;
+            config.mode(SystemSleepMode::HIBERNATE).gpio(WKP, RISING);
+            System.sleep(config);
             break;
     }
-
+    //safety
+    System.reset();
 }
 
 STATES_e SleepTask::run(void)
 {
-    if(pSystemDesc->flags->hasCharger)
-    {
-        return STATE_CHARGE;
-    }
-    // System.reset();
     return STATE_NULL;
 }
 

@@ -28,6 +28,7 @@
     "C_Cpp.vcFormat.newLine.beforeOpenBrace.namespace": "newLine",
     "C_Cpp.vcFormat.newLine.beforeOpenBrace.type": "newLine",
     "C_Cpp.vcFormat.indent.braces": true,
-    "C_Cpp.vcFormat.space.beforeBlockOpenBrace": false
+    "C_Cpp.vcFormat.space.beforeBlockOpenBrace": false,
+    "particle.targetDevice": ""
 
 }

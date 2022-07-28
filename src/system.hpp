@@ -52,5 +52,4 @@ extern SystemDesc_t* pSystemDesc;
 
 int SYS_initSys(void);
 int SYS_deinitSys(void);
-
 #endif

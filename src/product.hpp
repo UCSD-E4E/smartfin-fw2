@@ -213,4 +213,11 @@
  * 
  */
 #define PRODUCT_VERSION_USE_HEX 0
+
+/**
+ * @brief Enable initialization delay
+ * 
+ */
+// #define SF_ENABLE_DEBUG_DELAY   15
+
 #endif

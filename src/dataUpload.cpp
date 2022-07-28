@@ -36,6 +36,15 @@ STATES_e DataUpload::run(void)
         return STATE_DEEP_SLEEP;
     }
 
+    //checks 3G flag
+    bool no_upload_flag;
+    pSystemDesc->pNvram->get(NVRAM::NO_UPLOAD_FLAG, no_upload_flag);
+    if (no_upload_flag) {
+        SF_OSAL_printf("no_upload mode set: entering sleep state\n");
+        return STATE_CHARGE;
+        //this can go to state_charge if we want to not save battery...
+    }
+
     while(1)
     {
         // Power is most important.  If we don't have enough power, don't even
@@ -46,6 +55,7 @@ STATES_e DataUpload::run(void)
             SF_OSAL_printf("Battery low\n");
             return STATE_DEEP_SLEEP;
         }
+
 
         // Do we have something to publish to begin with?  If not, save power
         if(!pSystemDesc->pRecorder->hasData())

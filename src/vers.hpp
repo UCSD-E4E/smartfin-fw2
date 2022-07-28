@@ -26,7 +26,7 @@
 #define FW_MAJOR_VERSION    2
 #define FW_MINOR_VERSION    0
 #define FW_BUILD_NUM        9
-#define FW_BRANCH           "fw_version"
+#define FW_BRANCH           "3Gfix"
 
 #if PRODUCT_VERSION_USE_HEX == 1
 #define PRODUCT_VERSION_VALUE (FW_MAJOR_VERSION << 13 | FW_MINOR_VERSION << 6 | FW_BUILD_NUM)
