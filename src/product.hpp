@@ -185,12 +185,6 @@
 #define MANUFACTURING_CELL_TIMEOUT_MS 180000
 
 /**
- * @brief Sensor data size?
- * TODO get rid of this!
- */
-#define SENSOR_DATA_SZ (6)
-
-/**
  * @brief A voltage that's slightly higher than the max battery voltage
  * 
  */

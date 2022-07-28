@@ -54,6 +54,15 @@
 
 #define MEASUREMENT_TIMEOUT_MS      (300)
 
+/**
+ * @brief Sensor data size
+ * 
+ * [0x11:0x17]
+ */
+#define AK09916_SENSOR_DATA_SZ (6)
+
+
+
 AK09916::AK09916(uint8_t address)
 {
     m_address = address;
@@ -100,8 +109,8 @@ bool AK09916::open(void)
     }
 
     // Read test data
-    uint8_t data[SENSOR_DATA_SZ];
-    read_register(AK09916_HXL, SENSOR_DATA_SZ, data);
+    uint8_t data[AK09916_SENSOR_DATA_SZ];
+    read_register(AK09916_HXL, AK09916_SENSOR_DATA_SZ, data);
     int16_t mx = ((int16_t)data[1] << 8) | data[0];
     int16_t my = ((int16_t)data[3] << 8) | data[2];
     int16_t mz = ((int16_t)data[5] << 8) | data[4];
@@ -127,7 +136,7 @@ void AK09916::close(void)
 
 bool AK09916::read(int16_t* x, int16_t* y, int16_t* z)
 {
-    uint8_t data[SENSOR_DATA_SZ];
+    uint8_t data[AK09916_SENSOR_DATA_SZ];
 
     if (read(data) == false)
     {
@@ -160,7 +169,7 @@ bool AK09916::read(uint8_t* data)
         read_register(AK09916_ST2, sizeof(reg), &reg);
         if (reg & AK09916_ST2_HOFL)
         {
-            memset(data, -1, SENSOR_DATA_SZ);
+            memset(data, -1, AK09916_SENSOR_DATA_SZ);
             FLOG_AddError(FLOG_MAG_MEAS_OVRFL, 0);
             return false;
         }
@@ -174,13 +183,13 @@ bool AK09916::read(uint8_t* data)
     }
     if (millis() - start_ms > MEASUREMENT_TIMEOUT_MS)
     {
-        memset(data, -1, SENSOR_DATA_SZ);
+        memset(data, -1, AK09916_SENSOR_DATA_SZ);
         FLOG_AddError(FLOG_MAG_MEAS_TO, 0);
         return false;
     }
 
     // Read data
-    read_register(AK09916_HXL, SENSOR_DATA_SZ, data);
+    read_register(AK09916_HXL, AK09916_SENSOR_DATA_SZ, data);
 
     // Read STAT2 after reading data
     read_register(AK09916_ST2, sizeof(reg), &reg);
