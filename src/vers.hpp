@@ -5,6 +5,13 @@
  * 
  * DATE     WHO DESCRIPTION
  * ----------------------------------------------------------------------------
+ * 07/27/22 AY  v2.0.0.10
+ *              - Bug fix for #32 - Enabled 3G upload bypass
+ *              - Fixed charge transition to water
+ *              - Fixed CLI transition to deep sleep
+ *              - Added cloud versioning
+ *              - Fixed sleep mode sleep state
+ *              - Added boot debug delay
  * 06/11/22 NH  v2.0.0.6
  *              - Bug fix for smartfin-fw2#27 - adding w/d trip to upload
  *              - Updating versioning
@@ -25,8 +32,8 @@
 
 #define FW_MAJOR_VERSION    2
 #define FW_MINOR_VERSION    0
-#define FW_BUILD_NUM        9
-#define FW_BRANCH           "3Gfix"
+#define FW_BUILD_NUM        10
+#define FW_BRANCH           ""
 
 #if PRODUCT_VERSION_USE_HEX == 1
 #define PRODUCT_VERSION_VALUE (FW_MAJOR_VERSION << 13 | FW_MINOR_VERSION << 6 | FW_BUILD_NUM)
