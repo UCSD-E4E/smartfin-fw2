@@ -1,6 +1,8 @@
 #include "AK09916.h"
 #include "product.hpp"
 
+#include "flog.hpp"
+
 //
 // Register addresses
 //
@@ -64,6 +66,7 @@ bool AK09916::open(void)
     read_register(AK09916_WIA2, sizeof(id), &id);
     if (id != AK09916_DEV_ID)
     {
+        FLOG_AddError(FLOG_MAG_ID_MISMATCH, 0);
         return false;
     }
 
@@ -88,6 +91,7 @@ bool AK09916::open(void)
     }
     if (millis() - start_ms > MEASUREMENT_TIMEOUT_MS)
     {
+        FLOG_AddError(FLOG_MAG_MEAS_TO, 0);
         return false;
     }
 
@@ -103,6 +107,7 @@ bool AK09916::open(void)
         (my < -200 || my > 200) ||
         (mz < -1000 || mz > -200))
     {
+        FLOG_AddError(FLOG_MAG_TEST_FAIL, 0);
         return false;
     }
 
@@ -152,6 +157,7 @@ bool AK09916::read(uint8_t* data)
         if (reg & AK09916_ST2_HOFL)
         {
             memset(data, -1, SENSOR_DATA_SZ);
+            FLOG_AddError(FLOG_MAG_MEAS_OVRFL, 0);
             return false;
         }
 
@@ -165,6 +171,7 @@ bool AK09916::read(uint8_t* data)
     if (millis() - start_ms > MEASUREMENT_TIMEOUT_MS)
     {
         memset(data, -1, SENSOR_DATA_SZ);
+        FLOG_AddError(FLOG_MAG_MEAS_TO, 0);
         return false;
     }
 
