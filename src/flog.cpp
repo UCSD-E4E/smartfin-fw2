@@ -45,6 +45,10 @@ const FLOG_Message_t FLOG_Message[] = {
     {FLOG_CAL_EXIT, "Calbiration Exit"},
     {FLOG_CAL_SLEEP, "Calibration Sleep"},
     {FLOG_CAL_TEMP, "Calibration Temp Measurement"},
+    {FLOG_MAG_ID_MISMATCH, "Compass ID Mismatch"},
+    {FLOG_MAG_MEAS_TO, "Compass Measurement Timeout"},
+    {FLOG_MAG_TEST_FAIL, "Compass Self-Test Failure"},
+    {FLOG_MAG_MEAS_OVRFL, "Compass Measurement Overflow"},
     {FLOG_NULL, NULL}
 };
 
