@@ -23,7 +23,10 @@ typedef enum FLOG_CODE_
     FLOG_CAL_EXIT       =0x0205,
     FLOG_CAL_SLEEP      =0x0206,
     FLOG_CAL_TEMP       =0x0207,
-    FLOG_MAG_READERR    =0x0301,
+    FLOG_MAG_ID_MISMATCH=0x0301,
+    FLOG_MAG_MEAS_TO    =0x0302,
+    FLOG_MAG_TEST_FAIL  =0x0303,
+    FLOG_MAG_MEAS_OVRFL =0x0304,
 }FLOG_CODE_e;
 
 void FLOG_Initialize(void);
