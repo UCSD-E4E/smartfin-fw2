@@ -7,6 +7,8 @@
  * ----------------------------------------------------------------------------
  * 06/11/22 NH  v2.0.0.6
  *              - Bug fix for smartfin-fw2#27 - adding w/d trip to upload
+ *              - Updating versioning
+ *              - Bug fix for smartfin-fw2#33
  *              - Bug fix for smartfin-fw2#30 - adding CLI monitoring of water
  *                  detect status
  * 06/03/21 NH  v2.0.0.5
@@ -19,11 +21,18 @@
  * 
  */
 
+#include "product.hpp"
+
 #define FW_MAJOR_VERSION    2
 #define FW_MINOR_VERSION    0
-#define FW_PATCH_VERSION    0
 #define FW_BUILD_NUM        9
-#define FW_BRANCH           ""
+#define FW_BRANCH           "fw_version"
+
+#if PRODUCT_VERSION_USE_HEX == 1
+#define PRODUCT_VERSION_VALUE (FW_MAJOR_VERSION << 13 | FW_MINOR_VERSION << 6 | FW_BUILD_NUM)
+#else
+#define PRODUCT_VERSION_VALUE (FW_MAJOR_VERSION * 10000 + FW_MINOR_VERSION * 100 + FW_BUILD_NUM)
+#endif
 
 void VERS_printBanner(void);
 const char* VERS_getBuildDate(void);
