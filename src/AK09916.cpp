@@ -157,10 +157,16 @@ bool AK09916::read(int16_t* x, int16_t* y, int16_t* z)
 bool AK09916::read(uint8_t* data)
 {
     uint8_t reg;
+    uint8_t reg1;
 
     // Set to single measurement mode
     write_register(AK09916_CNTL2, AK09916_CNTL2_SINGLE_MODE);
     read_register(AK09916_CNTL2, sizeof(uint8_t), &reg);
+    if(AK09916_CNTL2_SINGLE_MODE != reg)
+    {
+        FLOG_AddError(FLOG_MAG_MODE_FAIL, reg);
+        return false;
+    }
 
     // Wait no more than MEASUREMENT_TIMEOUT_MS for data ready
     system_tick_t start_ms = millis();
@@ -185,7 +191,9 @@ bool AK09916::read(uint8_t* data)
     if (millis() - start_ms > MEASUREMENT_TIMEOUT_MS)
     {
         memset(data, -1, AK09916_SENSOR_DATA_SZ);
-        FLOG_AddError(FLOG_MAG_MEAS_TO, 0);
+        read_register(AK09916_ST2, sizeof(uint8_t), &reg);
+        read_register(AK09916_ST1, sizeof(uint8_t), &reg1);
+        FLOG_AddError(FLOG_MAG_MEAS_TO, reg | (reg1 << 8));
         return false;
     }
 
