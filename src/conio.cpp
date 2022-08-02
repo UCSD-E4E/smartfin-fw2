@@ -123,7 +123,7 @@ extern "C"
                 }
             }
             if(!pSystemDesc->flags->hasCharger) {
-                break;
+                return -1;
             }
             
         }
