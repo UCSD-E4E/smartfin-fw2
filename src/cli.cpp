@@ -144,9 +144,8 @@ STATES_e CLI::run(void)
     SF_OSAL_printf(">");
     while (1)
     {
-        if (millis() >= lastKeyPressTime + CLI_NO_INPUT_TIMEOUT_MS || CLI_nextState != STATE_CLI)
-        {
-            break;
+        if(millis() >= lastKeyPressTime + CLI_NO_INPUT_TIMEOUT_MS) {
+            CLI_nextState = STATE_CHARGE;
         }
 
         if(!pSystemDesc->flags->hasCharger) {
@@ -158,6 +157,10 @@ STATES_e CLI::run(void)
             CLI_nextState = STATE_SESSION_INIT;
         }
         
+        if (CLI_nextState != STATE_CLI)
+        {
+            break;
+        }
         if (kbhit())
         {
             userInput = getch();
@@ -811,14 +814,17 @@ static int CLI_testSleep(void)
 
 static void CLI_set_no_upload_flag(void) {
     if (!pSystemDesc->pNvram->put(NVRAM::NO_UPLOAD_FLAG, true)) {
-        SF_OSAL_printf("error setting 3G flag\n");
+        SF_OSAL_printf("error enabling no upload flag\n");
     }
+    SF_OSAL_printf("no upload flag enabled successfully\n");
 }
 
 static void CLI_disable_no_upload_flag(void) {
     if (!pSystemDesc->pNvram->put(NVRAM::NO_UPLOAD_FLAG, false)) {
-        SF_OSAL_printf("error setting 4G flag\n");
+        SF_OSAL_printf("error disabling no upload flag\n");
+        return;
     }
+    SF_OSAL_printf("no upload flag disabled successfully\n");
 }
 
 static void CLI_view_no_upload_flag(void) {

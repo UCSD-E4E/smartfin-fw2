@@ -378,12 +378,11 @@ static void SS_ensemble10Func(DeploymentSchedule_t* pDeployment)
     {
         water = pData->water / pDeployment->measurementsToAccumulate;
         temp = pData->temperature / pDeployment->measurementsToAccumulate;
-        /* temporary fix to prevent temperature from defaulting to nan if no water detect
         if(water == false)
         {
             temp -= 100;
         }
-        */
+        
 
         ensData.header.elapsedTime_ds = Ens_getStartTime(pDeployment->startTime);
         SF_OSAL_printf("Ensemble timestamp: %d\n", ensData.header.elapsedTime_ds);
@@ -473,12 +472,11 @@ static void SS_ensemble08Func(DeploymentSchedule_t* pDeployment)
     {
         water = pData->water / pDeployment->measurementsToAccumulate;
         temp = pData->temperature / pDeployment->measurementsToAccumulate;
-        /* temporary fix to prevent temperature from defaulting to nan if no water detect
         if(water == false)
         {
             temp -= 100;
         }
-        */
+        
         
         ens.header.elapsedTime_ds = Ens_getStartTime(pDeployment->startTime);
         ens.header.ensembleType = ENS_TEMP_TIME;
@@ -507,7 +505,7 @@ static void SS_fwVerFunc(DeploymentSchedule_t* pDeployment)
     ens.header.elapsedTime_ds = Ens_getStartTime(pDeployment->startTime);
     ens.header.ensembleType = ENS_TEXT;
 
-    ens.nChars = snprintf(ens.verBuf, 32, "FW%d.%d.%d.%d%s", FW_MAJOR_VERSION, FW_MINOR_VERSION, FW_PATCH_VERSION, FW_BUILD_NUM, FW_BRANCH);
+    ens.nChars = snprintf(ens.verBuf, 32, "FW%d.%d.%d.%d%s", FW_MAJOR_VERSION, FW_MINOR_VERSION, FW_BUILD_NUM, FW_BRANCH);
     pSystemDesc->pRecorder->putBytes(&ens, sizeof(EnsembleHeader_t) + sizeof(uint8_t) + ens.nChars);
 
 }
