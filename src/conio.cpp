@@ -1,6 +1,7 @@
 #include "conio.hpp"
 
 #include "Particle.h"
+#include "system.hpp"
 
 #include <cstdio>
 
@@ -120,6 +121,9 @@ extern "C"
                         putch('\n');
                         return i;
                 }
+            }
+            if(!pSystemDesc->flags->hasCharger) {
+                break;
             }
             
         }

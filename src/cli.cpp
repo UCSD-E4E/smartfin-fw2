@@ -363,6 +363,11 @@ static void CLI_doDebugMode(void)
         CLI_displayDebugMenu(CLI_debugMenu);
         SF_OSAL_printf("*>");
         getline(inputBuffer, 80);
+        
+        if(!pSystemDesc->flags->hasCharger) {
+            return;
+        }
+
         if(strlen(inputBuffer) == 0)
         {
             continue;
