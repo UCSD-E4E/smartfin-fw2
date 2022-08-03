@@ -53,10 +53,9 @@ static void CLI_doCalibrateMode(void);
 static void CLI_set_no_upload_flag(void);
 static void CLI_disable_no_upload_flag(void);
 static void CLI_view_no_upload_flag(void);
-static void CLI_forceSession(void);
 static void CLI_exit(void);
 
-const CLI_menu_t CLI_menu[20] =
+const CLI_menu_t CLI_menu[18] =
     {
         {'#', &CLI_displayMenu},
         {'C', &CLI_doCalibrateMode},
@@ -75,7 +74,8 @@ const CLI_menu_t CLI_menu[20] =
         {'V', &CLI_view_no_upload_flag},
         {'X', &CLI_exit},
         {'S', &CLI_forceSession},
-        {'\0', NULL}};
+        {'\0', NULL}
+    };
 
 static int CLI_displaySystemDesc(void);
 static int CLI_testSleepLoadBoot(void);
@@ -144,9 +144,8 @@ STATES_e CLI::run(void)
     SF_OSAL_printf(">");
     while (1)
     {
-        if (millis() >= lastKeyPressTime + CLI_NO_INPUT_TIMEOUT_MS || CLI_nextState != STATE_CLI)
-        {
-            break;
+        if(millis() >= lastKeyPressTime + CLI_NO_INPUT_TIMEOUT_MS) {
+            CLI_nextState = STATE_CHARGE;
         }
 
         if(!pSystemDesc->flags->hasCharger) {
@@ -158,6 +157,10 @@ STATES_e CLI::run(void)
             CLI_nextState = STATE_SESSION_INIT;
         }
         
+        if (CLI_nextState != STATE_CLI)
+        {
+            break;
+        }
         if (kbhit())
         {
             userInput = getch();
@@ -203,13 +206,12 @@ void CLI::exit(void)
 static void CLI_displayMenu(void)
 {
     SF_OSAL_printf(
-        "T for MFG Test, B for Battery State,\n"
+        "T for MFG Test, C for C for Calibrate Mode, B for Battery State,\n"
         "I for Init Surf Session, U for Data Upload, D for Deep Sleep,\n"
         "F for Format Flash, Z to check filesytem, L for List Files,\n"
         "R for Read/Delete/Copy Files, M for Make Files,\n"
         "H to set no_upload mode, O to disable no_upload mode, V to view no_upload flag,\n"
-        "C to for temperature mode\n"
-        "S to force session, X to exit command line\n");
+        "S for force session, X to exit command line\n");
 }
 
 static CLI_menu_t const* CLI_findCommand( char const* const cmd, CLI_menu_t const* const menu)
@@ -504,9 +506,9 @@ static int CLI_setLEDs(void)
 
 static int CLI_monitorSensors(void)
 {
-    uint16_t accelRawData[3];
-    uint16_t gyroRawData[3];
-    uint16_t magRawData[3];
+    // uint16_t accelRawData[3];
+    // uint16_t gyroRawData[3];
+    // uint16_t magRawData[3];
     float accelData[3];
     float gyroData[3];
     int16_t magData[3];
@@ -544,14 +546,15 @@ static int CLI_monitorSensors(void)
         {
             pSystemDesc->pGPS->encode(GPS_getch());
         }
+        pSystemDesc->pCompass->read(magData, magData + 1, magData + 2);
+        // pSystemDesc->pCompass->read((uint8_t*) magRawData);
+
         pSystemDesc->pIMU->get_accelerometer(accelData, accelData + 1, accelData + 2);
-        pSystemDesc->pIMU->get_accel_raw_data((uint8_t*) accelRawData);
+        // pSystemDesc->pIMU->get_accel_raw_data((uint8_t*) accelRawData);
 
         pSystemDesc->pIMU->get_gyroscope(gyroData, gyroData + 1, gyroData + 2);
-        pSystemDesc->pIMU->get_gyro_raw_data((uint8_t*) gyroRawData);
-        
-        pSystemDesc->pCompass->read(magData, magData + 1, magData + 2);
-        pSystemDesc->pCompass->read((uint8_t*) magRawData);
+        // pSystemDesc->pIMU->get_gyro_raw_data((uint8_t*) gyroRawData);
+
 
         temp = pSystemDesc->pTempSensor->getTemp();
 
@@ -566,7 +569,7 @@ static int CLI_monitorSensors(void)
         }
 
         // SF_OSAL_printf("Time between: %08.2f\r", elapsed / count);
-        SF_OSAL_printf("%6d\t%8.4f\t%8.4f\t%8.4f\t%8.4f\t%8.4f\t%8.4f\t%8d\t%8d\t%8d\t%8.4f\t%8d\t%10.6f\t%10.6f\r", millis(), 
+        SF_OSAL_printf("%6d\t%8.4f\t%8.4f\t%8.4f\t%8.4f\t%8.4f\t%8.4f\t%8d\t%8d\t%8d\t%8.4f\t%8d\t%10.6f\t%10.6f\r\n", millis(), 
             accelData[0], accelData[1], accelData[2],
             gyroData[0], gyroData[1], gyroData[2],
             magData[0], magData[1], magData[2],
@@ -812,11 +815,11 @@ static int CLI_executeMfgPeripheralTest(void)
         "GPS Test",
         "IMU Test",
         "Temperature Test",
+        "Cellular Test",
         "Wet/Dry Sensor Test",
         "Status LED Test",
         "Battery Status Test",
         "Battery Voltage Test",
-        "Cellular Test",
         NULL
     };
     char userInput[SF_OSAL_LINE_WIDTH];
@@ -874,14 +877,17 @@ static int CLI_testSleep(void)
 
 static void CLI_set_no_upload_flag(void) {
     if (!pSystemDesc->pNvram->put(NVRAM::NO_UPLOAD_FLAG, true)) {
-        SF_OSAL_printf("error setting 3G flag\n");
+        SF_OSAL_printf("error enabling no upload flag\n");
     }
+    SF_OSAL_printf("no upload flag enabled successfully\n");
 }
 
 static void CLI_disable_no_upload_flag(void) {
     if (!pSystemDesc->pNvram->put(NVRAM::NO_UPLOAD_FLAG, false)) {
-        SF_OSAL_printf("error setting 4G flag\n");
+        SF_OSAL_printf("error disabling no upload flag\n");
+        return;
     }
+    SF_OSAL_printf("no upload flag disabled successfully\n");
 }
 
 static void CLI_view_no_upload_flag(void) {
