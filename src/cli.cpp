@@ -55,7 +55,7 @@ static void CLI_disable_no_upload_flag(void);
 static void CLI_view_no_upload_flag(void);
 static void CLI_exit(void);
 
-const CLI_menu_t CLI_menu[17] =
+const CLI_menu_t CLI_menu[18] =
     {
         {'#', &CLI_displayMenu},
         {'C', &CLI_doCalibrateMode},
@@ -73,7 +73,9 @@ const CLI_menu_t CLI_menu[17] =
         {'O', &CLI_disable_no_upload_flag},
         {'V', &CLI_view_no_upload_flag},
         {'X', &CLI_exit},
-        {'\0', NULL}};
+        {'S', &CLI_forceSession},
+        {'\0', NULL}
+    };
 
 static int CLI_displaySystemDesc(void);
 static int CLI_testSleepLoadBoot(void);
@@ -209,7 +211,7 @@ static void CLI_displayMenu(void)
         "F for Format Flash, Z to check filesytem, L for List Files,\n"
         "R for Read/Delete/Copy Files, M for Make Files,\n"
         "H to set no_upload mode, O to disable no_upload mode, V to view no_upload flag,\n"
-        "X to exit command line\n");
+        "S for force session, X to exit command line\n");
 }
 
 static CLI_menu_t const* CLI_findCommand( char const* const cmd, CLI_menu_t const* const menu)
@@ -504,9 +506,9 @@ static int CLI_setLEDs(void)
 
 static int CLI_monitorSensors(void)
 {
-    uint16_t accelRawData[3];
-    uint16_t gyroRawData[3];
-    uint16_t magRawData[3];
+    // uint16_t accelRawData[3];
+    // uint16_t gyroRawData[3];
+    // uint16_t magRawData[3];
     float accelData[3];
     float gyroData[3];
     int16_t magData[3];
@@ -544,14 +546,15 @@ static int CLI_monitorSensors(void)
         {
             pSystemDesc->pGPS->encode(GPS_getch());
         }
+        pSystemDesc->pCompass->read(magData, magData + 1, magData + 2);
+        // pSystemDesc->pCompass->read((uint8_t*) magRawData);
+
         pSystemDesc->pIMU->get_accelerometer(accelData, accelData + 1, accelData + 2);
-        pSystemDesc->pIMU->get_accel_raw_data((uint8_t*) accelRawData);
+        // pSystemDesc->pIMU->get_accel_raw_data((uint8_t*) accelRawData);
 
         pSystemDesc->pIMU->get_gyroscope(gyroData, gyroData + 1, gyroData + 2);
-        pSystemDesc->pIMU->get_gyro_raw_data((uint8_t*) gyroRawData);
-        
-        pSystemDesc->pCompass->read(magData, magData + 1, magData + 2);
-        pSystemDesc->pCompass->read((uint8_t*) magRawData);
+        // pSystemDesc->pIMU->get_gyro_raw_data((uint8_t*) gyroRawData);
+
 
         temp = pSystemDesc->pTempSensor->getTemp();
 
@@ -566,7 +569,7 @@ static int CLI_monitorSensors(void)
         }
 
         // SF_OSAL_printf("Time between: %08.2f\r", elapsed / count);
-        SF_OSAL_printf("%6d\t%8.4f\t%8.4f\t%8.4f\t%8.4f\t%8.4f\t%8.4f\t%8d\t%8d\t%8d\t%8.4f\t%8d\t%10.6f\t%10.6f\r", millis(), 
+        SF_OSAL_printf("%6d\t%8.4f\t%8.4f\t%8.4f\t%8.4f\t%8.4f\t%8.4f\t%8d\t%8d\t%8d\t%8.4f\t%8d\t%10.6f\t%10.6f\r\n", millis(), 
             accelData[0], accelData[1], accelData[2],
             gyroData[0], gyroData[1], gyroData[2],
             magData[0], magData[1], magData[2],
@@ -590,17 +593,37 @@ static int CLI_gpsTerminal(void)
 {
     bool run = true;
     char user;
+    int getcha;
     digitalWrite(GPS_PWR_EN_PIN, HIGH);
+    SF_OSAL_printf("Setting pin high\n");
     delay(500);
     pSystemDesc->pGPS->gpsModuleInit();
+     SF_OSAL_printf("Doing init\n");
 
+    SF_OSAL_printf("Comms: %d\n",pSystemDesc->pGPS->checkComms());
     while(run)
     {
-        if(GPS_kbhit())
+        SF_OSAL_printf("\n");
+        
+        SF_OSAL_printf("Encode results:");
+        while(GPS_kbhit())
         {
-            putch(GPS_getch());
+            getcha = GPS_getch();
+            SF_OSAL_printf("[%d:%d] ", pSystemDesc->pGPS->encode(getcha),(getcha));
         }
-        if(kbhit())
+        SF_OSAL_printf("\n");
+
+        SF_OSAL_printf("enabled: %d\n",pSystemDesc->pGPS->isEnabled());
+        SF_OSAL_printf("loc valid: %d\n",pSystemDesc->pGPS->location.isValid());
+        SF_OSAL_printf("loc updated: %d\n",pSystemDesc->pGPS->location.isUpdated());
+        SF_OSAL_printf("Lat: %d\n",pSystemDesc->pGPS->location.lat_int32()/1000000.0);
+        SF_OSAL_printf("Long: %d\n",pSystemDesc->pGPS->location.lng_int32()/1000000.0);
+        SF_OSAL_printf("date: %d\n",pSystemDesc->pGPS->date.value());
+        SF_OSAL_printf("time: %d\n",pSystemDesc->pGPS->time.value());
+        SF_OSAL_printf("altitude (meters): %d\n",pSystemDesc->pGPS->altitude.meters()/10000000.0);
+        SF_OSAL_printf("age: %d\n",pSystemDesc->pGPS->location.age());
+        SF_OSAL_printf("Press enter to refresh, esc to exit.\n");
+        
         {
             user = getch();
             if(user == 27)
@@ -667,6 +690,48 @@ static int CLI_clearFLOG(void)
 {
     FLOG_ClearLog();
     return 1;
+}
+
+static void CLI_forceSession(void)
+{       
+        char userInput[32];
+        system_tick_t num;
+        system_tick_t oneSec;
+        oneSec = 1000; 
+        SF_OSAL_printf("About to force a session\n");
+
+        SF_OSAL_printf("Forcing a session...\n");
+        SF_OSAL_printf("Enter length of forcing water sensor (s): \n");
+        
+        getline(userInput, 32);
+        if(1 != sscanf(userInput, "%hhu",&num))
+        {
+            SF_OSAL_printf("Unknown input!\n");
+           return;
+        }
+        pSystemDesc->startTime = millis();
+        pSystemDesc->sessionLength = num*oneSec;
+        
+        CLI_nextState = STATE_DEPLOYED;
+        pSystemDesc->pWaterSensor->resetArray();
+        // change window to small window (smaller moving average for quick detect)
+        pSystemDesc->pWaterSensor->setWindowSize(WATER_DETECT_SURF_SESSION_INIT_WINDOW);
+        // set the initial state to "not in water" (because hystersis)
+        pSystemDesc->pWaterSensor->forceState(WATER_SENSOR_LOW_STATE);
+        #if ICM20648_ENABLED
+            // set in-water
+            digitalWrite(WATER_MFG_TEST_EN, HIGH);
+        #endif
+
+        for (int i = 0; i < 100; i++)
+        {
+            pSystemDesc->pWaterSensor->takeReading();
+        }
+
+        SF_OSAL_printf("Wet dry sensor: %d", pSystemDesc->pWaterSensor->takeReading());
+
+
+        SF_OSAL_printf("Now deployed!");
 }
 
 static void CLI_doCalibrateMode(void)

@@ -16,7 +16,11 @@
         "exception": "cpp",
         "iosfwd": "cpp",
         "new": "cpp",
-        "streambuf": "cpp"
+        "streambuf": "cpp",
+        "__bit_reference": "cpp",
+        "__string": "cpp",
+        "cstring": "cpp",
+        "*.ipp": "cpp"
     },
     "particle.firmwareVersion": "3.0.0",
     "particle.targetPlatform": "electron",
