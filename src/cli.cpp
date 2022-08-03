@@ -49,8 +49,6 @@ static void CLI_doDebugMode(void);
 static  CLI_menu_t const* CLI_findCommand(char const* const cmd, CLI_menu_t const* const menu);
 static int CLI_executeDebugMenu(const int cmd, CLI_debugMenu_t* menu);
 static void CLI_displayDebugMenu(CLI_debugMenu_t* menu);
-static void CLI_accelCalibrate(void);
-static void CLI_gyroCalibrate(void);
 static void CLI_doCalibrateMode(void);
 static void CLI_set_no_upload_flag(void);
 static void CLI_disable_no_upload_flag(void);
@@ -77,8 +75,6 @@ const CLI_menu_t CLI_menu[20] =
         {'V', &CLI_view_no_upload_flag},
         {'X', &CLI_exit},
         {'S', &CLI_forceSession},
-        {'A',CLI_accelCalibrate},
-        {'G',CLI_gyroCalibrate},
         {'\0', NULL}};
 
 static int CLI_displaySystemDesc(void);
@@ -212,7 +208,7 @@ static void CLI_displayMenu(void)
         "F for Format Flash, Z to check filesytem, L for List Files,\n"
         "R for Read/Delete/Copy Files, M for Make Files,\n"
         "H to set no_upload mode, O to disable no_upload mode, V to view no_upload flag,\n"
-        "Calibrate modes: C:temp, A:accelerometer, G:gyro, MM:magnetometer,\n"
+        "C to for temperature mode\n"
         "S to force session, X to exit command line\n");
 }
 
@@ -506,81 +502,6 @@ static int CLI_setLEDs(void)
     }
 }
 
-
-static void CLI_accelCalibrate(void)
-{
-    uint16_t accelRawData[3];
-    uint16_t gyroRawData[3];
-    uint16_t magRawData[3];
-    float accelData[3];
-    float gyroData[3];
-    int16_t magData[3];
-    float temp;
-    uint8_t waterDetect;
-    double location[2];
-  
-    if(!pSystemDesc->pIMU->open())
-    {
-        SF_OSAL_printf("IMU Fail\n");
-    }
-
-    SF_OSAL_printf("%6s\t%8s\t%8s\t%8s\n", "time", "xAcc", "yAcc", "zAcc", "xAng", "yAng", "zAng");
-    // SF_OSAL_printf("%6s\t%8s\n", "time", "temp");
-    while(!kbhit())
-    {
-        pSystemDesc->pIMU->get_accelerometer(accelData, accelData + 1, accelData + 2);
-        pSystemDesc->pIMU->get_accel_raw_data((uint8_t*) accelRawData);
-
-        // SF_OSAL_printf("Time between: %08.2f\r", elapsed / count);
-        SF_OSAL_printf("%6d\t%8.4f\t%8.4f\t%8.4f\r", millis(), 
-            accelData[0], accelData[1], accelData[2]);
-    }
-    SF_OSAL_printf("\n");
-    while(kbhit())
-    {
-        getch();
-    }
-    pSystemDesc->pIMU->close();
-}
-
-
-static void CLI_gyroCalibrate(void)
-{
-    uint16_t accelRawData[3];
-    uint16_t gyroRawData[3];
-    uint16_t magRawData[3];
-    float accelData[3];
-    float gyroData[3];
-    int16_t magData[3];
-    float temp;
-    uint8_t waterDetect;
-    double location[2];
-
-    if(!pSystemDesc->pCompass->open())
-    {
-        SF_OSAL_printf("Mag Fail\n");
-    }
-    
-    SF_OSAL_printf("%6s\t%8s\t%8s\t%8s\n", "time", "xAng", "yAng", "zAng");
-    // SF_OSAL_printf("%6s\t%8s\n", "time", "temp");
-    while(!kbhit())
-    {
-        pSystemDesc->pIMU->get_gyroscope(gyroData, gyroData + 1, gyroData + 2);
-        pSystemDesc->pIMU->get_gyro_raw_data((uint8_t*) gyroRawData);
-
-        // SF_OSAL_printf("Time between: %08.2f\r", elapsed / count);
-        SF_OSAL_printf("%6d\t%8.4f\t%8.4f\t%8.4f\r", millis(), 
-            gyroData[0], gyroData[1], gyroData[2]);
-    }
-    SF_OSAL_printf("\n");
-    while(kbhit())
-    {
-        getch();
-    }
-    pSystemDesc->pIMU->close();
-}
-
-
 static int CLI_monitorSensors(void)
 {
     uint16_t accelRawData[3];
@@ -669,17 +590,37 @@ static int CLI_gpsTerminal(void)
 {
     bool run = true;
     char user;
+    int getcha;
     digitalWrite(GPS_PWR_EN_PIN, HIGH);
+    SF_OSAL_printf("Setting pin high\n");
     delay(500);
     pSystemDesc->pGPS->gpsModuleInit();
+     SF_OSAL_printf("Doing init\n");
 
+    SF_OSAL_printf("Comms: %d\n",pSystemDesc->pGPS->checkComms());
     while(run)
     {
-        if(GPS_kbhit())
+        SF_OSAL_printf("\n");
+        
+        SF_OSAL_printf("Encode results:");
+        while(GPS_kbhit())
         {
-            putch(GPS_getch());
+            getcha = GPS_getch();
+            SF_OSAL_printf("[%d:%d] ", pSystemDesc->pGPS->encode(getcha),(getcha));
         }
-        if(kbhit())
+        SF_OSAL_printf("\n");
+
+        SF_OSAL_printf("enabled: %d\n",pSystemDesc->pGPS->isEnabled());
+        SF_OSAL_printf("loc valid: %d\n",pSystemDesc->pGPS->location.isValid());
+        SF_OSAL_printf("loc updated: %d\n",pSystemDesc->pGPS->location.isUpdated());
+        SF_OSAL_printf("Lat: %d\n",pSystemDesc->pGPS->location.lat_int32()/1000000.0);
+        SF_OSAL_printf("Long: %d\n",pSystemDesc->pGPS->location.lng_int32()/1000000.0);
+        SF_OSAL_printf("date: %d\n",pSystemDesc->pGPS->date.value());
+        SF_OSAL_printf("time: %d\n",pSystemDesc->pGPS->time.value());
+        SF_OSAL_printf("altitude (meters): %d\n",pSystemDesc->pGPS->altitude.meters()/10000000.0);
+        SF_OSAL_printf("age: %d\n",pSystemDesc->pGPS->location.age());
+        SF_OSAL_printf("Press enter to refresh, esc to exit.\n");
+        
         {
             user = getch();
             if(user == 27)
@@ -768,7 +709,7 @@ static void CLI_forceSession(void)
         pSystemDesc->startTime = millis();
         pSystemDesc->sessionLength = num*oneSec;
         
-        CLI_nextState = STATE_SESSION_INIT;
+        CLI_nextState = STATE_DEPLOYED;
         pSystemDesc->pWaterSensor->resetArray();
         // change window to small window (smaller moving average for quick detect)
         pSystemDesc->pWaterSensor->setWindowSize(WATER_DETECT_SURF_SESSION_INIT_WINDOW);
