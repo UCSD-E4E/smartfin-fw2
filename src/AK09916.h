@@ -40,7 +40,7 @@ public:
 
     /** Read a measurement
      *
-     * @param[out] data must be of size SENSOR_DATA_SZ
+     * @param[out] data must be of size uint8_t[3][2]
      *
      * @returns
      *   'true' if the read succeeded,
