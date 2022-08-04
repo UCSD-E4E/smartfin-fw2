@@ -5,6 +5,11 @@
  * 
  * DATE     WHO DESCRIPTION
  * ----------------------------------------------------------------------------
+ * 08/04/22 NH  v2.0.0.11
+ *              - Initial fix for #19 - Fixing magnetometer timeout
+ *              - Fix for #40 - Adding Battery State CLI command
+ *              - Fix for #20 - adding self identify command
+ *              - Fix for #50 - USB disconnect exists debug menu
  * 07/27/22 AY  v2.0.0.10
  *              - Bug fix for #32 - Enabled 3G upload bypass
  *              - Fixed charge transition to water
@@ -32,8 +37,8 @@
 
 #define FW_MAJOR_VERSION    2
 #define FW_MINOR_VERSION    0
-#define FW_BUILD_NUM        10
-#define FW_BRANCH           "magnetomer_sampling"
+#define FW_BUILD_NUM        11
+#define FW_BRANCH           ""
 
 #if PRODUCT_VERSION_USE_HEX == 1
 #define PRODUCT_VERSION_VALUE (FW_MAJOR_VERSION << 13 | FW_MINOR_VERSION << 6 | FW_BUILD_NUM)
