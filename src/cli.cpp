@@ -54,9 +54,10 @@ static void CLI_set_no_upload_flag(void);
 static void CLI_disable_no_upload_flag(void);
 static void CLI_view_no_upload_flag(void);
 static void CLI_exit(void);
+static void CLI_display_battery_state(void);
 static void CLI_self_identify(void);
 
-const CLI_menu_t CLI_menu[18] =
+const CLI_menu_t CLI_menu[] =
     {
         {'#', &CLI_displayMenu},
         {'C', &CLI_doCalibrateMode},
@@ -75,7 +76,9 @@ const CLI_menu_t CLI_menu[18] =
         {'V', &CLI_view_no_upload_flag},
         {'S', &CLI_self_identify},
         {'X', &CLI_exit},
-        {'\0', NULL}};
+        {'B', &CLI_display_battery_state},
+        {'\0', NULL}
+    };
 
 static int CLI_displaySystemDesc(void);
 static int CLI_testSleepLoadBoot(void);
@@ -506,9 +509,9 @@ static int CLI_setLEDs(void)
 
 static int CLI_monitorSensors(void)
 {
-    uint16_t accelRawData[3];
-    uint16_t gyroRawData[3];
-    uint16_t magRawData[3];
+    // uint16_t accelRawData[3];
+    // uint16_t gyroRawData[3];
+    // uint16_t magRawData[3];
     float accelData[3];
     float gyroData[3];
     int16_t magData[3];
@@ -546,14 +549,15 @@ static int CLI_monitorSensors(void)
         {
             pSystemDesc->pGPS->encode(GPS_getch());
         }
+        pSystemDesc->pCompass->read(magData, magData + 1, magData + 2);
+        // pSystemDesc->pCompass->read((uint8_t*) magRawData);
+
         pSystemDesc->pIMU->get_accelerometer(accelData, accelData + 1, accelData + 2);
-        pSystemDesc->pIMU->get_accel_raw_data((uint8_t*) accelRawData);
+        // pSystemDesc->pIMU->get_accel_raw_data((uint8_t*) accelRawData);
 
         pSystemDesc->pIMU->get_gyroscope(gyroData, gyroData + 1, gyroData + 2);
-        pSystemDesc->pIMU->get_gyro_raw_data((uint8_t*) gyroRawData);
-        
-        pSystemDesc->pCompass->read(magData, magData + 1, magData + 2);
-        pSystemDesc->pCompass->read((uint8_t*) magRawData);
+        // pSystemDesc->pIMU->get_gyro_raw_data((uint8_t*) gyroRawData);
+
 
         temp = pSystemDesc->pTempSensor->getTemp();
 
@@ -836,6 +840,11 @@ static void CLI_view_no_upload_flag(void) {
 
 static void CLI_exit(void) {
     CLI_nextState = STATE_CHARGE;
+}
+
+static void CLI_display_battery_state(void) {
+    SF_OSAL_printf("Battery percentage: %f\n", pSystemDesc->pBattery->getSoC());
+    SF_OSAL_printf("Battery voltage: %f\n", pSystemDesc->pBattery->getVCell());
 }
 
 static void CLI_self_identify(void) {
