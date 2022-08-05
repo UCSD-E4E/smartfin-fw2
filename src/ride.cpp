@@ -139,7 +139,6 @@ STATES_e RideInitTask::run(void)
             pSystemDesc->pGPS->encode(GPS_getch());
         }
 
-        RIDE_setFileName(millis());
 
         if((pSystemDesc->pGPS->location.age() < GPS_AGE_VALID_MS) && (pSystemDesc->pGPS->location.age() >= 0))
         {
@@ -184,6 +183,7 @@ STATES_e RideInitTask::run(void)
 
 void RideInitTask::exit(void)
 {
+    RIDE_setFileName(millis());
     this->ledStatus.setActive(false);
 }
 
