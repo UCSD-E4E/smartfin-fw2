@@ -2,6 +2,7 @@
 #define __NVRAM_HPP__
 
 #include "Particle.h"
+#include "product.hpp"
 
 #include <cstdint>
 class NVRAM
@@ -18,7 +19,8 @@ class NVRAM
         TMP116_CAL_CYCLE_PERIOD_SEC,
         UPLOAD_REATTEMPTS,
         NO_UPLOAD_FLAG,
-        NUM_DATA_IDs
+        CAL_COEFFS,
+        NUM_DATA_IDs,
     }DATA_ID_e;
 
     typedef struct nvramTableEntry_
@@ -39,8 +41,8 @@ class NVRAM
         {TMP116_CAL_DATA_COLLECTION_PERIOD_SEC, 0x0008, sizeof(uint32_t)},
         {TMP116_CAL_CYCLE_PERIOD_SEC, 0x000C, sizeof(uint32_t)},
         {UPLOAD_REATTEMPTS, 0x0014, sizeof(uint8_t)},
-        {NO_UPLOAD_FLAG, 0x0015, sizeof(uint8_t)}
-
+        {NO_UPLOAD_FLAG, 0x0015, sizeof(uint8_t)},
+        {CAL_COEFFS, 0x0016, TOTAL_CAL_CONSTS * sizeof(uint32_t)}
     };
     static NVRAM& getInstance(void);
 

@@ -6,6 +6,7 @@
 #include <cstdlib>
 #include <cmath>
 #include <inttypes.h>
+#include <vector>
 
 #include "conio.hpp"
 #include "product.hpp"
@@ -17,6 +18,7 @@
 #include "flog.hpp"
 #include "mfgTest.hpp"
 #include "utils.hpp"
+#include "ensembleTypes.hpp"
 
 typedef const struct CLI_menu_
 {
@@ -30,6 +32,8 @@ typedef const struct CLI_debugMenu_
     const char *const fnName;
     int (*fn)(void);
 } CLI_debugMenu_t;
+
+const char* CAL_CONST_TYPES[] = {"gyro_intercept", "acc_coeff", "acc_intercept", "mag_coeff", "mag_intercept", "thermal_coeff", "thermal_intercept"};
 
 static STATES_e CLI_nextState;
 static LEDStatus CLI_ledStatus;
@@ -53,9 +57,11 @@ static void CLI_doCalibrateMode(void);
 static void CLI_set_no_upload_flag(void);
 static void CLI_disable_no_upload_flag(void);
 static void CLI_view_no_upload_flag(void);
+static void CLI_load_cal_coeffs(void);
+static void CLI_view_cal_coeffs(void);
 static void CLI_exit(void);
 
-const CLI_menu_t CLI_menu[17] =
+const CLI_menu_t CLI_menu[19] =
     {
         {'#', &CLI_displayMenu},
         {'C', &CLI_doCalibrateMode},
@@ -73,6 +79,8 @@ const CLI_menu_t CLI_menu[17] =
         {'O', &CLI_disable_no_upload_flag},
         {'V', &CLI_view_no_upload_flag},
         {'X', &CLI_exit},
+        {'~', &CLI_load_cal_coeffs},
+        {'!', &CLI_view_cal_coeffs},
         {'\0', NULL}};
 
 static int CLI_displaySystemDesc(void);
@@ -829,6 +837,43 @@ static void CLI_view_no_upload_flag(void) {
     bool no_upload_flag;
     pSystemDesc->pNvram->get(NVRAM::NO_UPLOAD_FLAG, no_upload_flag);
     SF_OSAL_printf("no_upload flag: %d\n",  no_upload_flag);
+
+}
+
+static void CLI_load_cal_coeffs(void) {
+    uint32_t coeffs[TOTAL_CAL_CONSTS];
+    char inputBuffer[200];
+    int currConstant = 0;
+
+    SF_OSAL_printf("press enter to start\n");
+    for (int i = 0; i < TOTAL_CAL_CONSTS; i++) {
+        getline(inputBuffer, 200);
+
+        uint32_t coef_;
+        if (1 != sscanf(inputBuffer, "%lu", &coef_)) {
+            SF_OSAL_printf("%s\n", CAL_CONST_TYPES[currConstant]);
+            currConstant++;
+            i--;
+            continue;
+        }
+
+        coeffs[i] = coef_;
+    }
+
+    if (!pSystemDesc->pNvram->put(NVRAM::CAL_COEFFS, coeffs)) {
+        SF_OSAL_printf("error loading calibration coefficients\n");
+        return;
+    }
+    SF_OSAL_printf("calibration coefficients loaded successfully\n");
+}
+
+static void CLI_view_cal_coeffs(void) {
+    uint32_t coeffs[TOTAL_CAL_CONSTS];
+    if (!pSystemDesc->pNvram->get(NVRAM::CAL_COEFFS, coeffs)) {return;}
+        
+    for(int i = 0; i < TOTAL_CAL_CONSTS; i++) {
+        SF_OSAL_printf("%lu\n", coeffs[i]);
+    }
 
 }
 

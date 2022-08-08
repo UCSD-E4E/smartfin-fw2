@@ -220,4 +220,6 @@
  */
 // #define SF_ENABLE_DEBUG_DELAY   15
 
+#define TOTAL_CAL_CONSTS 29
+
 #endif
