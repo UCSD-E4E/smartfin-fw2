@@ -692,6 +692,9 @@ static int CLI_clearFLOG(void)
     return 1;
 }
 
+//this function forces the water sensor enable pin
+//for the user specified time in seconds
+//then sets the next state to "DEPLOYED"
 static void CLI_forceSession(void)
 {       
         char userInput[32];
@@ -700,7 +703,7 @@ static void CLI_forceSession(void)
         oneSec = 1000; 
         SF_OSAL_printf("About to force a session\n");
 
-        SF_OSAL_printf("Forcing a session...\n");
+        SF_OSAL_printf("Forcing a session\n");
         SF_OSAL_printf("Enter length of forcing water sensor (s): \n");
         
         getline(userInput, 32);
@@ -709,9 +712,11 @@ static void CLI_forceSession(void)
             SF_OSAL_printf("Unknown input!\n");
            return;
         }
+
         pSystemDesc->startTime = millis();
         pSystemDesc->sessionLength = num*oneSec;
         
+        //starts it immediately into a deployed state
         CLI_nextState = STATE_DEPLOYED;
         pSystemDesc->pWaterSensor->resetArray();
         // change window to small window (smaller moving average for quick detect)
@@ -719,7 +724,7 @@ static void CLI_forceSession(void)
         // set the initial state to "not in water" (because hystersis)
         pSystemDesc->pWaterSensor->forceState(WATER_SENSOR_LOW_STATE);
         #if ICM20648_ENABLED
-            // set in-water
+            // forces the water sensor to show in water
             digitalWrite(WATER_MFG_TEST_EN, HIGH);
         #endif
 

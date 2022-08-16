@@ -259,9 +259,10 @@ STATES_e RideTask::run(void)
         pNextEvent->lastExecuteTime = nextEventTime;
         pNextEvent->measurementCount++;
 
-        //SF_OSAL_printf("difference: %d\n", millis() - pSystemDesc->startTime);
-        //SF_OSAL_printf("water sensor turning off?: %d\n", millis() - pSystemDesc->startTime > pSystemDesc->sessionLength);
-        
+        //ends the session if we originally forced the session in the
+        //command line, after the user specified time
+        //if it is a normal session this will always be false
+        //and therefore skipped
         if(millis() - pSystemDesc->startTime > pSystemDesc->sessionLength)
         {
             digitalWrite(WATER_MFG_TEST_EN, WATER_SENSOR_LOW_STATE);
