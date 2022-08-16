@@ -385,7 +385,7 @@ static void SS_ensemble10Func(DeploymentSchedule_t* pDeployment)
     // Report accumulated measurements
     if(pData->accumulateCount == pDeployment->measurementsToAccumulate)
     {
-        water = (pData->water / pDeployment->measurementsToAccumulate) > 0;
+        water = ((float)(pData->water) / pDeployment->measurementsToAccumulate) > 0.5;
         temp = pData->temperature / pDeployment->measurementsToAccumulate;
         if(water == false)
         {
