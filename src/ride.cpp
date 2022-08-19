@@ -27,6 +27,9 @@ static void SS_ensemble08Init(DeploymentSchedule_t* pDeployment);
 static void SS_fwVerInit(DeploymentSchedule_t* pDeployment);
 static void SS_fwVerFunc(DeploymentSchedule_t* pDeployment);
 
+static void SS_calInit(DeploymentSchedule_t* pDeployment);
+static void SS_calFunc(DeploymentSchedule_t* pDeployment);
+
 typedef struct Ensemble10_eventData_
 {
     double temperature;
@@ -63,6 +66,7 @@ DeploymentSchedule_t deploymentSchedule[] =
     {&SS_ensemble07Func, &SS_ensemble07Init, 1, 0, 10000, UINT32_MAX, 0, 0, 0, &ensemble07Data},
     {&SS_ensemble08Func, &SS_ensemble08Init, 1, 0, UINT32_MAX, UINT32_MAX, 0, 0, 0, &ensemble08Data},
     {&SS_fwVerFunc, &SS_fwVerInit, 1, 0, UINT32_MAX, UINT32_MAX, 0, 0, 0, NULL},
+    {&SS_calFunc, &SS_calInit, 1, 0, UINT32_MAX, UINT32_MAX, 0, 0, 0, NULL},
     {NULL, NULL, 0, 0, 0, 0, 0, 0, 0, NULL}
 };
 
@@ -234,7 +238,7 @@ STATES_e RideTask::run(void)
                 SF_OSAL_printf("GPS Location Lock @ %dms\n", millis());
                 this->gpsLocked = true;
             }
-            this->ledStatus.setColor(RIDE_RGB_LED_COLOR);
+            this->ledStatus.setColor(RGB_COLOR_MAGENTA);
             this->ledStatus.setPattern(RIDE_RGB_LED_PATTERN_NOGPS);
             this->ledStatus.setPeriod(RIDE_RGB_LED_PERIOD_NOGPS);
             this->ledStatus.setPriority(RIDE_RGB_LED_PRIORITY);
@@ -243,7 +247,7 @@ STATES_e RideTask::run(void)
         else
         {
             this->gpsLocked = false;
-            this->ledStatus.setColor(RIDE_RGB_LED_COLOR);
+            this->ledStatus.setColor(RGB_COLOR_MAGENTA);
             this->ledStatus.setPattern(RIDE_RGB_LED_PATTERN_GPS);
             this->ledStatus.setPeriod(RIDE_RGB_LED_PERIOD_GPS);
             this->ledStatus.setPriority(RIDE_RGB_LED_PRIORITY);
@@ -486,6 +490,28 @@ static void SS_ensemble08Func(DeploymentSchedule_t* pDeployment)
         memset(pData, 0, sizeof(Ensemble08_eventData_t));
     }
 
+}
+
+static void SS_calInit(DeploymentSchedule_t* pDeployment)
+{
+    (void) pDeployment;
+}
+
+static void SS_calFunc(DeploymentSchedule_t* pDeployment)
+{
+#pragma pack(push, 1)
+    struct{
+        EnsembleHeader_t header;
+        uint8_t ncoef;
+        Ensemble12_data_t ensData;
+    } ens;
+#pragma pack(pop)
+    ens.header.ensembleType = ENS_CAL;
+    ens.header.elapsedTime_ds = Ens_getStartTime(pDeployment->startTime);
+
+    ens.ncoef = TOTAL_CAL_CONSTS;
+    pSystemDesc->pNvram->get(NVRAM::CAL_COEFFS, ens.ensData);
+    pSystemDesc->pRecorder->putBytes(&ens, sizeof(EnsembleHeader_t) + sizeof(Ensemble12_data_t));
 }
 
 static void SS_fwVerInit(DeploymentSchedule_t* pDeployment)

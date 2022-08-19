@@ -1,6 +1,7 @@
 #ifndef __ENSEMBLE_TYPES_HPP__
 #define __ENSEMBLE_TYPES_HPP__
 #include "Particle.h"
+#include "product.hpp"
 #include <cstdint>
 typedef enum EnsembleID_
 {
@@ -15,6 +16,7 @@ typedef enum EnsembleID_
     ENS_IMU,
     ENS_TEMP_IMU,
     ENS_TEMP_IMU_GPS,
+    ENS_CAL,
     ENS_TEXT = 0x0F,
     ENS_NUM_ENSEMBLES
 }EnsembleID_e;
@@ -61,6 +63,11 @@ typedef struct Ensemble11_data_
     int16_t rawMagField[3];
     int32_t location[2];
 }Ensemble11_data_t;
+
+typedef struct Ensemble12_data_
+{
+    int32_t coeffs[TOTAL_CAL_CONSTS];
+}Ensemble12_data_t;
 #pragma pack(pop)
 
 unsigned int Ens_getStartTime(system_tick_t sessionStart);
