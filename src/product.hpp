@@ -195,4 +195,23 @@
  * 
  */
 #define SF_BATTERY_MAX_VOLTAGE 4.3
+
+/**
+ * @brief Base85 encoding flag
+ * 
+ */
+#define SF_UPLOAD_BASE85 1
+/**
+ * @brief Base64 encoding flag
+ * 
+ */
+#define SF_UPLOAD_BASE64 2
+/**
+ * @brief Base64url encoding flag
+ * 
+ */
+#define SF_UPLOAD_BASE64URL 3
+
+#define SF_UPLOAD_ENCODING SF_UPLOAD_BASE64URL
+
 #endif

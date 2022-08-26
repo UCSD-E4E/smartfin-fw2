@@ -6,6 +6,7 @@
 #include "conio.hpp"
 #include "product.hpp"
 #include "base85.h"
+#include "base64.h"
 #include "sleepTask.hpp"
 
 
@@ -25,7 +26,7 @@ STATES_e DataUpload::run(void)
     char dataPublishBuffer[DATA_UPLOAD_MAX_UPLOAD_LEN];
     char publishName[DU_PUBLISH_ID_NAME_LEN + 1];
     int nBytesToEncode;
-    int nBytesToSend;
+    size_t nBytesToSend;
     system_tick_t lastSendTime = 0;
     system_tick_t startConnectTime = 0;
     uint8_t uploadAttempts;
@@ -129,8 +130,15 @@ STATES_e DataUpload::run(void)
         SF_OSAL_printf("Got %d bytes to encode\n", nBytesToEncode);
 
         memset(dataPublishBuffer, 0, DATA_UPLOAD_MAX_UPLOAD_LEN);
+        nBytesToSend = DATA_UPLOAD_MAX_UPLOAD_LEN;
+        #if SF_UPLOAD_ENCODING == SF_UPLOAD_BASE85
         nBytesToSend = (bintob85(dataPublishBuffer, dataEncodeBuffer, nBytesToEncode) - dataPublishBuffer);
-        SF_OSAL_printf("Got %d bytes to upload\n", nBytesToSend);
+        #elif SF_UPLOAD_ENCODING == SF_UPLOAD_BASE64
+        b64_encode(dataEncodeBuffer, nBytesToEncode, dataPublishBuffer, &nBytesToSend);
+        #elif SF_UPLOAD_ENCODING == SF_UPLOAD_BASE64URL
+        urlsafe_b64_encode(dataEncodeBuffer, nBytesToEncode, dataPublishBuffer, &nBytesToSend);
+        #endif
+        SF_OSAL_printf("Got %u bytes to upload\n", nBytesToSend);
 
         if(!Particle.connected())
         {
