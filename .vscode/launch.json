@@ -2,6 +2,78 @@
     "version": "0.1.0",
     "configurations": [
         {
+            "type": "cortex-debug",
+            "request": "attach",
+            "servertype": "openocd",
+            "name": "Particle Debugger",
+            "cwd": "${workspaceRoot}",
+            "armToolchainPath": "${command:particle.getDebuggerCompilerDir}",
+            "executable": "${command:particle.getDebuggerExecutable}",
+            "serverpath": "${command:particle.getDebuggerOpenocdPath}",
+            "preLaunchTask": "Particle: Flash application for debug (local)",
+            "searchDir": [
+                "${command:particle.getDebuggerSearchDir}"
+            ],
+            "configFiles": [
+                "${command:particle.getDebuggerConfigFiles}"
+            ],
+            "postAttachCommands": [
+                "${command:particle.getDebuggerPostAttachCommands}"
+            ],
+            "particle": {
+                "version": "1.0.0",
+                "debugger": "particle-debugger"
+            }
+        },
+        {
+            "type": "cortex-debug",
+            "request": "attach",
+            "servertype": "openocd",
+            "name": "Particle Programmer Shield",
+            "cwd": "${workspaceRoot}",
+            "armToolchainPath": "${command:particle.getDebuggerCompilerDir}",
+            "executable": "${command:particle.getDebuggerExecutable}",
+            "serverpath": "${command:particle.getDebuggerOpenocdPath}",
+            "preLaunchTask": "Particle: Flash application for debug (local)",
+            "searchDir": [
+                "${command:particle.getDebuggerSearchDir}"
+            ],
+            "configFiles": [
+                "${command:particle.getDebuggerConfigFiles}"
+            ],
+            "postAttachCommands": [
+                "${command:particle.getDebuggerPostAttachCommands}"
+            ],
+            "particle": {
+                "version": "1.0.0",
+                "debugger": "particle-programmer-shield"
+            }
+        },
+        {
+            "type": "cortex-debug",
+            "request": "attach",
+            "servertype": "openocd",
+            "name": "Generic DAPLink Compatible Debugger",
+            "cwd": "${workspaceRoot}",
+            "armToolchainPath": "${command:particle.getDebuggerCompilerDir}",
+            "executable": "${command:particle.getDebuggerExecutable}",
+            "serverpath": "${command:particle.getDebuggerOpenocdPath}",
+            "preLaunchTask": "Particle: Flash application for debug (local)",
+            "searchDir": [
+                "${command:particle.getDebuggerSearchDir}"
+            ],
+            "configFiles": [
+                "${command:particle.getDebuggerConfigFiles}"
+            ],
+            "postAttachCommands": [
+                "${command:particle.getDebuggerPostAttachCommands}"
+            ],
+            "particle": {
+                "version": "1.0.0",
+                "debugger": "generic-cmsis-dap"
+            }
+        },
+        {
             "cwd": "${workspaceRoot}",
             "executable": "./bin/executable.elf",
             "name": "Debug Microcontroller",
@@ -9,22 +81,20 @@
             "type": "cortex-debug",
             "servertype": "stlink"
         },
-
-
-    {
-        "name": "Electron Main",
-        "program": "${workspaceFolder}/main.js",
-        "request": "launch",
-        "runtimeExecutable": "${workspaceFolder}/node_modules/.bin/electron",
-        "skipFiles": [
-            "<node_internals>/**"
-        ],
-        "type": "pwa-node"
-    },
+        {
+            "name": "Electron Main",
+            "program": "${workspaceFolder}/main.js",
+            "request": "launch",
+            "runtimeExecutable": "${workspaceFolder}/node_modules/.bin/electron",
+            "skipFiles": [
+                "<node_internals>/**"
+            ],
+            "type": "pwa-node"
+        },
         {
             "type": "cortex-debug",
             "request": "attach",
-            "name": "Particle Debugger (photon, p1, electron)",
+            "name": "[outdated] Particle Debugger (photon, p1, electron)",
             "servertype": "openocd",
             "interface": "swd",
             "device": "STM32F205RG",
@@ -53,7 +123,7 @@
         {
             "type": "cortex-debug",
             "request": "attach",
-            "name": "Particle Debugger (argon, boron / bsom / b5som, xenon, tracker)",
+            "name": "[outdated] Particle Debugger (argon, boron / bsom / b5som, xenon, tracker)",
             "servertype": "openocd",
             "interface": "swd",
             "device": "nRF52840_xxAA",
@@ -82,7 +152,7 @@
         {
             "type": "cortex-debug",
             "request": "attach",
-            "name": "Particle Programmer Shield v1.0 (photon, p1, electron)",
+            "name": "[outdated] Particle Programmer Shield v1.0 (photon, p1, electron)",
             "servertype": "openocd",
             "interface": "swd",
             "device": "STM32F205RG",
