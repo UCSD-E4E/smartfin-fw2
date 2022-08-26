@@ -317,7 +317,7 @@ static void CLI_doMakeTestFiles(void)
     SpiffsParticleFile bin_file;
 
     char fname[31];
-    const char *const fnameFmt = "t%d.txt";
+    const char *const fnameFmt = "t%03d.txt";
     const int nFiles = 3;
     const int nBytes = 496;
     uint8_t data[nBytes];
@@ -326,9 +326,9 @@ static void CLI_doMakeTestFiles(void)
 
     for (i = 0; i < nFiles; i++)
     {
-        for(i = 0; i < nBytes; i++)
+        for(j = 0; j < nBytes; j++)
         {
-            data[i] = random(256);
+            data[j] = random(256);
         }
         memset(fname, 0, 31);
         snprintf(fname, 31, fnameFmt, i);
