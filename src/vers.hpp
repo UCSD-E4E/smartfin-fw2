@@ -5,8 +5,22 @@
  * 
  * DATE     WHO DESCRIPTION
  * ----------------------------------------------------------------------------
+ * 08/04/22 NH  v2.0.0.11
+ *              - Initial fix for #19 - Fixing magnetometer timeout
+ *              - Fix for #40 - Adding Battery State CLI command
+ *              - Fix for #20 - adding self identify command
+ *              - Fix for #50 - USB disconnect exists debug menu
+ * 07/27/22 AY  v2.0.0.10
+ *              - Bug fix for #32 - Enabled 3G upload bypass
+ *              - Fixed charge transition to water
+ *              - Fixed CLI transition to deep sleep
+ *              - Added cloud versioning
+ *              - Fixed sleep mode sleep state
+ *              - Added boot debug delay
  * 06/11/22 NH  v2.0.0.6
  *              - Bug fix for smartfin-fw2#27 - adding w/d trip to upload
+ *              - Updating versioning
+ *              - Bug fix for smartfin-fw2#33
  *              - Bug fix for smartfin-fw2#30 - adding CLI monitoring of water
  *                  detect status
  * 06/03/21 NH  v2.0.0.5
@@ -19,11 +33,18 @@
  * 
  */
 
+#include "product.hpp"
+
 #define FW_MAJOR_VERSION    2
 #define FW_MINOR_VERSION    0
-#define FW_PATCH_VERSION    0
-#define FW_BUILD_NUM        9
+#define FW_BUILD_NUM        11
 #define FW_BRANCH           "cloud_upload"
+
+#if PRODUCT_VERSION_USE_HEX == 1
+#define PRODUCT_VERSION_VALUE (FW_MAJOR_VERSION << 13 | FW_MINOR_VERSION << 6 | FW_BUILD_NUM)
+#else
+#define PRODUCT_VERSION_VALUE (FW_MAJOR_VERSION * 10000 + FW_MINOR_VERSION * 100 + FW_BUILD_NUM)
+#endif
 
 void VERS_printBanner(void);
 const char* VERS_getBuildDate(void);

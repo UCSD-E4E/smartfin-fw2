@@ -24,7 +24,9 @@
 #include "flog.hpp"
 #include "mfgTest.hpp"
 #include "tempCal.hpp"
-// PRODUCT_VERSION(FW_MAJOR_VERSION << 8 | FW_MINOR_VERSION)
+
+PRODUCT_ID(PRODUCT_ID_SMARTFIN_Z7)
+PRODUCT_VERSION(PRODUCT_VERSION_VALUE)
 
 #define SF_DEBUG
 
@@ -73,6 +75,7 @@ SYSTEM_THREAD(ENABLED);
 // setup() runs once, when the device is first turned on.
 void setup()
 {
+  currentState = STATE_NULL;
   int i;
   // Put initialization like pinMode and begin functions here.
 
@@ -100,6 +103,17 @@ void setup()
       SF_OSAL_printf("\n");
     }
   }
+
+  #ifdef SF_ENABLE_DEBUG_DELAY
+  #warning Initialization delay enabled!
+  SF_OSAL_printf("Waiting ");
+  for(i = 0; i < SF_ENABLE_DEBUG_DELAY; i++)
+  {
+    SF_OSAL_printf("%d  ", i);
+    delay(1000);
+  }
+  SF_OSAL_printf("\n");
+  #endif
   RESET_GOOD = 0;
   nRESET_GOOD = 0;
 
@@ -153,7 +167,7 @@ void mainThread(void* args)
     printState(currentState);
     SF_OSAL_printf("\n");
     #endif
-    FLOG_AddError(FLOG_SYS_EXITSTATE, (uint16_t) currentState);
+    FLOG_AddError(FLOG_SYS_EXITSTATE, (uint16_t) pState->state);
     pState->task->exit();
     #ifdef SF_DEBUG
     SF_OSAL_printf("Exit complete\n");
@@ -166,11 +180,15 @@ static void initializeTaskObjects(void)
   currentState = SF_DEFAULT_STATE;
   SleepTask::loadBootBehavior();
 
+  //checks 3G flag
+  bool no_upload_flag;
+  pSystemDesc->pNvram->get(NVRAM::NO_UPLOAD_FLAG, no_upload_flag);
+
   switch(SleepTask::getBootBehavior())
   {
   default:
   case SleepTask::BOOT_BEHAVIOR_NORMAL:
-    if(digitalRead(SF_USB_PWR_DETECT_PIN) == HIGH)
+    if(digitalRead(SF_USB_PWR_DETECT_PIN) == HIGH && !no_upload_flag)
     {
       currentState = STATE_UPLOAD;
     }

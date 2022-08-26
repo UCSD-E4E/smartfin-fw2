@@ -52,8 +52,14 @@ static  CLI_menu_t const* CLI_findCommand(char const* const cmd, CLI_menu_t cons
 static int CLI_executeDebugMenu(const int cmd, CLI_debugMenu_t* menu);
 static void CLI_displayDebugMenu(CLI_debugMenu_t* menu);
 static void CLI_doCalibrateMode(void);
+static void CLI_set_no_upload_flag(void);
+static void CLI_disable_no_upload_flag(void);
+static void CLI_view_no_upload_flag(void);
+static void CLI_exit(void);
+static void CLI_display_battery_state(void);
+static void CLI_self_identify(void);
 
-const CLI_menu_t CLI_menu[13] =
+const CLI_menu_t CLI_menu[] =
     {
         {'#', &CLI_displayMenu},
         {'C', &CLI_doCalibrateMode},
@@ -67,7 +73,14 @@ const CLI_menu_t CLI_menu[13] =
         {'M', &CLI_doMakeTestFiles},
         {'R', &CLI_doReadDeleteFiles},
         {'*', &CLI_doDebugMode},
-        {'\0', NULL}};
+        {'H', &CLI_set_no_upload_flag},
+        {'O', &CLI_disable_no_upload_flag},
+        {'V', &CLI_view_no_upload_flag},
+        {'S', &CLI_self_identify},
+        {'X', &CLI_exit},
+        {'B', &CLI_display_battery_state},
+        {'\0', NULL}
+    };
 
 static int CLI_displaySystemDesc(void);
 static int CLI_testSleepLoadBoot(void);
@@ -116,6 +129,7 @@ void CLI::init(void)
     CLI_ledStatus.setPeriod(CLI_RGB_LED_PERIOD);
     CLI_ledStatus.setPriority(CLI_RGB_LED_PRIORITY);
     CLI_ledStatus.setActive();
+    pSystemDesc->pChargerCheck->start();
 
     while(kbhit())
     {
@@ -140,10 +154,16 @@ STATES_e CLI::run(void)
         if(millis() >= lastKeyPressTime + CLI_NO_INPUT_TIMEOUT_MS) {
             CLI_nextState = STATE_CHARGE;
         }
+
+        if(!pSystemDesc->flags->hasCharger) {
+            return STATE_DEEP_SLEEP;
+        }
+
         if(pSystemDesc->pWaterSensor->getCurrentStatus())
         {
             CLI_nextState = STATE_SESSION_INIT;
         }
+        
         if (CLI_nextState != STATE_CLI)
         {
             break;
@@ -186,6 +206,7 @@ STATES_e CLI::run(void)
 
 void CLI::exit(void)
 {
+    pSystemDesc->pChargerCheck->stop();
     CLI_ledStatus.setActive(false);
 }
 
@@ -195,7 +216,9 @@ static void CLI_displayMenu(void)
         "T for MFG Test, C for C for Calibrate Mode, B for Battery State,\n"
         "I for Init Surf Session, U for Data Upload, D for Deep Sleep,\n"
         "F for Format Flash, Z to check filesytem, L for List Files,\n"
-        "R for Read/Delete/Copy Files, M for Make Files\n");
+        "R for Read/Delete/Copy Files, M for Make Files,\n"
+        "H to set no_upload mode, O to disable no_upload mode, V to view no_upload flag,\n"
+        "S to print self id information, X to exit command line\n");
 }
 
 static CLI_menu_t const* CLI_findCommand( char const* const cmd, CLI_menu_t const* const menu)
@@ -348,7 +371,8 @@ static void CLI_doDebugMode(void)
     {
         CLI_displayDebugMenu(CLI_debugMenu);
         SF_OSAL_printf("*>");
-        getline(inputBuffer, 80);
+        if (getline(inputBuffer, 80) == -1) break;
+
         if(strlen(inputBuffer) == 0)
         {
             continue;
@@ -490,9 +514,9 @@ static int CLI_setLEDs(void)
 
 static int CLI_monitorSensors(void)
 {
-    uint16_t accelRawData[3];
-    uint16_t gyroRawData[3];
-    uint16_t magRawData[3];
+    // uint16_t accelRawData[3];
+    // uint16_t gyroRawData[3];
+    // uint16_t magRawData[3];
     float accelData[3];
     float gyroData[3];
     int16_t magData[3];
@@ -530,14 +554,15 @@ static int CLI_monitorSensors(void)
         {
             pSystemDesc->pGPS->encode(GPS_getch());
         }
+        pSystemDesc->pCompass->read(magData, magData + 1, magData + 2);
+        // pSystemDesc->pCompass->read((uint8_t*) magRawData);
+
         pSystemDesc->pIMU->get_accelerometer(accelData, accelData + 1, accelData + 2);
-        pSystemDesc->pIMU->get_accel_raw_data((uint8_t*) accelRawData);
+        // pSystemDesc->pIMU->get_accel_raw_data((uint8_t*) accelRawData);
 
         pSystemDesc->pIMU->get_gyroscope(gyroData, gyroData + 1, gyroData + 2);
-        pSystemDesc->pIMU->get_gyro_raw_data((uint8_t*) gyroRawData);
-        
-        pSystemDesc->pCompass->read(magData, magData + 1, magData + 2);
-        pSystemDesc->pCompass->read((uint8_t*) magRawData);
+        // pSystemDesc->pIMU->get_gyro_raw_data((uint8_t*) gyroRawData);
+
 
         temp = pSystemDesc->pTempSensor->getTemp();
 
@@ -794,6 +819,42 @@ static int CLI_testSleep(void)
     SF_OSAL_printf("start time: %d s\n", start);
     
     return 1;
+}
+
+static void CLI_set_no_upload_flag(void) {
+    if (!pSystemDesc->pNvram->put(NVRAM::NO_UPLOAD_FLAG, true)) {
+        SF_OSAL_printf("error enabling no upload flag\n");
+    }
+    SF_OSAL_printf("no upload flag enabled successfully\n");
+}
+
+static void CLI_disable_no_upload_flag(void) {
+    if (!pSystemDesc->pNvram->put(NVRAM::NO_UPLOAD_FLAG, false)) {
+        SF_OSAL_printf("error disabling no upload flag\n");
+        return;
+    }
+    SF_OSAL_printf("no upload flag disabled successfully\n");
+}
+
+static void CLI_view_no_upload_flag(void) {
+    bool no_upload_flag;
+    pSystemDesc->pNvram->get(NVRAM::NO_UPLOAD_FLAG, no_upload_flag);
+    SF_OSAL_printf("no_upload flag: %d\n",  no_upload_flag);
+
+}
+
+static void CLI_exit(void) {
+    CLI_nextState = STATE_CHARGE;
+}
+
+static void CLI_display_battery_state(void) {
+    SF_OSAL_printf("Battery percentage: %f\n", pSystemDesc->pBattery->getSoC());
+    SF_OSAL_printf("Battery voltage: %f\n", pSystemDesc->pBattery->getVCell());
+}
+
+static void CLI_self_identify(void) {
+    SF_OSAL_printf("Smartfin ID: %s\n", pSystemDesc->deviceID);
+    VERS_printBanner();
 }
 
 static int CLI_testUpload(void)

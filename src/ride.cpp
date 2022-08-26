@@ -261,7 +261,7 @@ STATES_e RideTask::run(void)
 
         if(pSystemDesc->pWaterSensor->getLastStatus() == WATER_SENSOR_LOW_STATE)
         {
-            SF_OSAL_printf("Out of water\n");
+            SF_OSAL_printf("Out of water!\n");
             return STATE_UPLOAD;
         }
 
@@ -382,6 +382,7 @@ static void SS_ensemble10Func(DeploymentSchedule_t* pDeployment)
         {
             temp -= 100;
         }
+        
 
         ensData.header.elapsedTime_ds = Ens_getStartTime(pDeployment->startTime);
         SF_OSAL_printf("Ensemble timestamp: %d\n", ensData.header.elapsedTime_ds);
@@ -476,6 +477,7 @@ static void SS_ensemble08Func(DeploymentSchedule_t* pDeployment)
             temp -= 100;
         }
         
+        
         ens.header.elapsedTime_ds = Ens_getStartTime(pDeployment->startTime);
         ens.header.ensembleType = ENS_TEMP_TIME;
         ens.ensData.rawTemp = N_TO_B_ENDIAN_2(temp / 0.0078125);
@@ -503,7 +505,7 @@ static void SS_fwVerFunc(DeploymentSchedule_t* pDeployment)
     ens.header.elapsedTime_ds = Ens_getStartTime(pDeployment->startTime);
     ens.header.ensembleType = ENS_TEXT;
 
-    ens.nChars = snprintf(ens.verBuf, 32, "FW%d.%d.%d.%d%s", FW_MAJOR_VERSION, FW_MINOR_VERSION, FW_PATCH_VERSION, FW_BUILD_NUM, FW_BRANCH);
+    ens.nChars = snprintf(ens.verBuf, 32, "FW%d.%d.%d.%d%s", FW_MAJOR_VERSION, FW_MINOR_VERSION, FW_BUILD_NUM, FW_BRANCH);
     pSystemDesc->pRecorder->putBytes(&ens, sizeof(EnsembleHeader_t) + sizeof(uint8_t) + ens.nChars);
 
 }

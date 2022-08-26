@@ -185,16 +185,34 @@
 #define MANUFACTURING_CELL_TIMEOUT_MS 180000
 
 /**
- * @brief Sensor data size?
- * TODO get rid of this!
- */
-#define SENSOR_DATA_SZ (6)
-
-/**
  * @brief A voltage that's slightly higher than the max battery voltage
  * 
  */
 #define SF_BATTERY_MAX_VOLTAGE 4.3
+
+/**
+ * @brief Lost Bird Smartfin Z7 Product ID
+ * 
+ */
+#define PRODUCT_ID_SMARTFIN_Z7  8977
+/**
+ * @brief UCSD Smartfin Product ID
+ * 
+ */
+#define PRODUCT_ID_UCSD_SMARTFIN    17293
+
+/**
+ * @brief Set to use a hexadecimal product version, otherwise use a decimal
+ * product version
+ * 
+ */
+#define PRODUCT_VERSION_USE_HEX 0
+
+/**
+ * @brief Enable initialization delay
+ * 
+ */
+// #define SF_ENABLE_DEBUG_DELAY   15
 
 /**
  * @brief Base85 encoding flag
