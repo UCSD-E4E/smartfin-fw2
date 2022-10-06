@@ -1,6 +1,7 @@
 #include "fileCLI.hpp"
 
 #include "base85.h"
+#include "base64.h"
 #include "conio.hpp"
 #include "utils.hpp"
 #include "system.hpp"
@@ -49,8 +50,15 @@ void FileCLI::execute(void)
 
     this->loopApp = 1;
     this->loopFile = 1;
-    SF_OSAL_printf("Press N to go to next file, C to copy, R to read it out "
-        "(base85), U to read it out (uint8_t), D to delete, E to exit\n");
+    SF_OSAL_printf("Press N to go to next file, C to copy, R to read it out ("
+        #if SF_UPLOAD_ENCODING == SF_UPLOAD_BASE85
+        "base85"
+        #elif SF_UPLOAD_ENCODING == SF_UPLOAD_BASE64
+        "base64"
+        #elif SF_UPLOAD_ENCODING == SF_UPLOAD_BASE64URL
+        "base64url"
+        #endif
+        "), U to read it out (uint8_t), D to delete, E to exit\n");
     
     if(!pSystemDesc->pFileSystem->opendir("", &this->dir))
     {
@@ -141,6 +149,8 @@ void FileCLI::dumpBase85(void)
     char encodedBuffer[1024];
     size_t encodedLen = 0;
     size_t nPackets = 0;
+    size_t totalEncodedLen = 0;
+    int retval;
 
     binFile = pSystemDesc->pFileSystem->openFile((char*) this->dirEnt.name, SPIFFS_O_RDONLY);
     binFile.lseek(0, SPIFFS_SEEK_SET);
@@ -151,12 +161,23 @@ void FileCLI::dumpBase85(void)
     {
         numBytesToEncode = binFile.readBytes((char*) dataBuffer, FILE_BLOCK_SIZE);
 
-        encodedLen += bintob85(encodedBuffer, dataBuffer, numBytesToEncode) - encodedBuffer;
+        #if SF_UPLOAD_ENCODING == SF_UPLOAD_BASE85
+        totalEncodedLen += bintob85(encodedBuffer, dataBuffer, numBytesToEncode) - encodedBuffer;
+        #elif SF_UPLOAD_ENCODING == SF_UPLOAD_BASE64
+        encodedLen = 1024;
+        b64_encode(dataBuffer, numBytesToEncode, encodedBuffer, &encodedLen);
+        totalEncodedLen += encodedLen;
+        #elif SF_UPLOAD_ENCODING == SF_UPLOAD_BASE64URL
+        encodedLen = 1024;
+        urlsafe_b64_encode(dataBuffer, numBytesToEncode, encodedBuffer, &encodedLen);
+        totalEncodedLen += encodedLen;
+        #endif
+        
         SF_OSAL_printf("%s\n", encodedBuffer);
         nPackets++;
     }
     SF_OSAL_printf("\n");
-    SF_OSAL_printf("%d chars of base85 data\n", encodedLen);
+    SF_OSAL_printf("%d chars of base85 data\n", totalEncodedLen);
     SF_OSAL_printf("%d packets\n", nPackets);
     binFile.close();
 }
