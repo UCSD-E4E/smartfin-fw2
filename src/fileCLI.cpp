@@ -5,8 +5,23 @@
 #include "conio.hpp"
 #include "utils.hpp"
 #include "system.hpp"
-#define FILE_BLOCK_SIZE 496
-
+#if SF_UPLOAD_ENCODING == SF_UPLOAD_BASE85
+/**
+ * How many bytes to store chunks of data in on the SPI flash.
+ * 
+ * 496 * 5/4 (base85 encoding compression rate) = 620 which is less than the 622
+ * bytes which is the maximum size of publish events.
+ */
+#define FILE_BLOCK_SIZE   496
+#elif SF_UPLOAD_ENCODING == SF_UPLOAD_BASE64 || SF_UPLOAD_ENCODING == SF_UPLOAD_BASE64URL
+/**
+ * How many bytes to store chunks of data in on the SPI flash.
+ * 
+ * 466 * 4/3 (base64 encoding compression rate) = 621 which is less than the 622
+ * bytes which is the maximum size of publish events.
+ */
+#define FILE_BLOCK_SIZE   466
+#endif
 typedef struct menu_
 {
     const char cmd;
