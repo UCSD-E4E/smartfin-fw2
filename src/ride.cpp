@@ -12,6 +12,7 @@
 #include "utils.hpp"
 #include "vers.hpp"
 #include "scheduler.hpp"
+#include "flog.hpp"
 
 static void RIDE_setFileName(system_tick_t startTime);
 
@@ -173,6 +174,7 @@ STATES_e RideInitTask::run(void)
         {
             // water not detected and timeout
             SleepTask::setBootBehavior(SleepTask::BOOT_BEHAVIOR_NORMAL);
+            FLOG_AddError(FLOG_RIDE_INIT_TIMEOUT, 0);
             return STATE_DEEP_SLEEP;
         }
         

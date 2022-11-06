@@ -30,6 +30,7 @@ class Recorder
     void incrementPacketNumber(void);
     int popLastPacket(size_t len);
     void setSessionName(const char* const);
+    int getNumFiles(void);
 
     int openSession(const char* const depName);
     int closeSession(void);

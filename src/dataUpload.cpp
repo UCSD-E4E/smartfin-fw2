@@ -8,7 +8,7 @@
 #include "base85.h"
 #include "base64.h"
 #include "sleepTask.hpp"
-
+#include "flog.hpp"
 
 void DataUpload::init(void)
 {
@@ -42,6 +42,7 @@ STATES_e DataUpload::run(void)
     pSystemDesc->pNvram->get(NVRAM::NO_UPLOAD_FLAG, no_upload_flag);
     if (no_upload_flag) {
         SF_OSAL_printf("no_upload mode set: entering sleep state\n");
+        FLOG_AddError(FLOG_UPLOAD_NO_UPLOAD, no_upload_flag);
         return STATE_CHARGE;
         //this can go to state_charge if we want to not save battery...
     }
@@ -54,11 +55,13 @@ STATES_e DataUpload::run(void)
         if(pSystemDesc->pBattery->getVCell() < SF_BATTERY_UPLOAD_VOLTAGE)
         {
             SF_OSAL_printf("Battery low\n");
+            FLOG_AddError(FLOG_UPL_BATT_LOW, (uint16_t) (pSystemDesc->pBattery->getVCell() * 1000));
             return STATE_DEEP_SLEEP;
         }
 
 
         // Do we have something to publish to begin with?  If not, save power
+        FLOG_AddError(FLOG_UPL_FOLDER_COUNT, pSystemDesc->pRecorder->getNumFiles());
         if(!pSystemDesc->pRecorder->hasData())
         {
             SF_OSAL_printf("No data to transmit\n");
@@ -87,6 +90,7 @@ STATES_e DataUpload::run(void)
         if(!Particle.connected())
         {
             SF_OSAL_printf("Fail to connect\n");
+            FLOG_AddError(FLOG_UPL_CONNECT_FAIL, 0);
             if(SleepTask::getBootBehavior() != SleepTask::BOOT_BEHAVIOR_UPLOAD_REATTEMPT)
             {
                 SleepTask::setBootBehavior(SleepTask::BOOT_BEHAVIOR_UPLOAD_REATTEMPT);
