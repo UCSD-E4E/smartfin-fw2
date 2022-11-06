@@ -17,6 +17,8 @@
 #include "flog.hpp"
 #include "mfgTest.hpp"
 #include "utils.hpp"
+#include "dataUpload.hpp"
+#include "base85.h"
 
 typedef const struct CLI_menu_
 {
@@ -94,6 +96,7 @@ static int CLI_displayFLOG(void);
 static int CLI_clearFLOG(void);
 static int CLI_executeMfgPeripheralTest(void);
 static int CLI_testSleep(void);
+static int CLI_testUpload(void);
 
 const CLI_debugMenu_t CLI_debugMenu[] =
 {
@@ -111,6 +114,7 @@ const CLI_debugMenu_t CLI_debugMenu[] =
     {12, "Clear Fault Log", CLI_clearFLOG},
     {13, "Execute Mfg Peripheral Test", CLI_executeMfgPeripheralTest},
     {14, "Test Sleep", CLI_testSleep},
+    {15, "Test Upload", CLI_testUpload},
     {0, NULL, NULL}
 };
 
@@ -313,19 +317,19 @@ static void CLI_doMakeTestFiles(void)
     SpiffsParticleFile bin_file;
 
     char fname[31];
-    const char *const fnameFmt = "t%d.txt";
+    const char *const fnameFmt = "t%03d.txt";
     const int nFiles = 3;
     const int nBytes = 496;
     uint8_t data[nBytes];
     int i, j;
 
-    for(i = 0; i < nBytes; i++)
-    {
-        data[i] = i & 0xFF;
-    }
 
     for (i = 0; i < nFiles; i++)
     {
+        for(j = 0; j < nBytes; j++)
+        {
+            data[j] = random(256);
+        }
         memset(fname, 0, 31);
         snprintf(fname, 31, fnameFmt, i);
         bin_file = pSystemDesc->pFileSystem->openFile(fname, SPIFFS_O_RDWR | SPIFFS_O_CREAT);
@@ -338,15 +342,15 @@ static void CLI_doMakeTestFiles(void)
         bin_file.close();
     }
 
-    sprintf(fname, ".test.txt");
-    memcpy(data, fname, 31);
-    bin_file = pSystemDesc->pFileSystem->openFile(fname, SPIFFS_O_RDWR | SPIFFS_O_CREAT);
-    for (j = 0; j < nBytes; j++)
-    {
-        bin_file.write(data[j]);
-    }
-    bin_file.flush();
-    bin_file.close();
+    // sprintf(fname, ".test.txt");
+    // memcpy(data, fname, 31);
+    // bin_file = pSystemDesc->pFileSystem->openFile(fname, SPIFFS_O_RDWR | SPIFFS_O_CREAT);
+    // for (j = 0; j < nBytes; j++)
+    // {
+    //     bin_file.write(data[j]);
+    // }
+    // bin_file.flush();
+    // bin_file.close();
     SF_OSAL_printf("Done making %d temp files!\n", nFiles);
 }
 
@@ -851,4 +855,34 @@ static void CLI_display_battery_state(void) {
 static void CLI_self_identify(void) {
     SF_OSAL_printf("Smartfin ID: %s\n", pSystemDesc->deviceID);
     VERS_printBanner();
+}
+
+static int CLI_testUpload(void)
+{
+    uint8_t dataEncodeBuffer[DATA_UPLOAD_MAX_UPLOAD_LEN];
+    const char* msg = "bTTe<cys^&00000000000000000000000000000kGx*vxLYFcNFG@Mk<3QPuv$VjC@S2JaD_-%j$@Lj*Qbh;Z2p^yWEAVE7D@e|x;fl4<SD=bGwH7L}%T44z=@DegL;C$6J=X2XRU2;&b&o9NfuLLw19xxAlD;8Qzt&bNdIMm$R@u40#N5@I&r08JT0c4gO~IkXB_bH50?EQC&ihlt;UuD0qF~W(h8GkLYmSQRdUW>-vuxo`u*T${!&V1W=iCOQWxC)%Rgv<4Bv_R(!G;)nm$lkA`avYI1PqHAI?`K6Qq3Wn{{Ppr9CJOaSB^1DVM-&|tT63pDPsTEmn_K02Gma$GsCg+T???S3-Ac&-n$F?l>UNJeZJ4>&KbM!`S!1xcF9lpr|=^C^$Zr#73hz2=5*E|#&PAq<#>E23DOXn1@yZTwdaD*7I2z(SP{zQqN!g&35DQaLygDY`U|&Gy^W1MhxIPg0syiYL*Q(6`}6IHPK-;~(W+kE0oPp!0kB0wqphkWf+uUC!+kN9zR!feZE(@fBHyE`M~@&yptzmeUV&FgJ_g^39+X+TwA3n2$~|}Oov1A4aXNe&xU\%2FBMd1rV4y{^`D+;+4xh!;CG*T~nVVOtA|F6h";
+    char* publishName = "Sfin-5d0036001750483553353920-test_msg";
+
+    SF_OSAL_printf("Testing upload\n");
+
+    Particle.connect();
+    waitFor(Particle.connected, 300000);
+
+    if(!Particle.connected())
+    {
+        SF_OSAL_printf("Failed to connect\n");
+        return 0;
+    }
+    SF_OSAL_printf("Connected\n");
+
+    if(!Particle.publish(publishName, msg, PRIVATE | WITH_ACK))
+    {
+        SF_OSAL_printf("Failed to upload data!\n");
+        return 0;
+    }
+
+    SF_OSAL_printf("Uploaded record \"%s\"\n", msg);
+    Particle.process();
+    Cellular.off();
+    return 1;
 }

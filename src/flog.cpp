@@ -37,6 +37,7 @@ const FLOG_Message_t FLOG_Message[] = {
     {FLOG_SYS_INITSTATE, "Initializing State"},
     {FLOG_SYS_EXECSTATE, "Executing State Body"},
     {FLOG_SYS_EXITSTATE, "Exiting State"},
+    {FLOG_SYS_UNKNOWNSTATE, "Unknown State"},
     {FLOG_CAL_BURST, "Calibrate Burst"},
     {FLOG_CAL_INIT, "Calibrate Initialization"},
     {FLOG_CAL_START_RUN, "Calibrate Start RUN"},
@@ -51,6 +52,11 @@ const FLOG_Message_t FLOG_Message[] = {
     {FLOG_MAG_MEAS_OVRFL, "Compass Measurement Overflow"},
     {FLOG_MAG_I2C_FAIL, "Compass I2C Failure"},
     {FLOG_MAG_MODE_FAIL, "Compass Mode Set Fail"},
+    {FLOG_RIDE_INIT_TIMEOUT, "Ride init Timeout"},
+    {FLOG_UPLOAD_NO_UPLOAD, "Upload - No Upload Flag set"},
+    {FLOG_UPL_BATT_LOW, "Upload Battery low"},
+    {FLOG_UPL_FOLDER_COUNT, "Upload file count"},
+    {FLOG_UPL_CONNECT_FAIL, "Upload connect fail"},
     {FLOG_NULL, NULL}
 };
 

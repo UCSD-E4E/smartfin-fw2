@@ -11,6 +11,7 @@
  * RGB LED state is handled by the system theme.
  */
 
+#if SF_UPLOAD_ENCODING == SF_UPLOAD_BASE85
 /**
  * How many bytes to store chunks of data in on the SPI flash.
  * 
@@ -18,6 +19,15 @@
  * bytes which is the maximum size of publish events.
  */
 #define DATA_UPLOAD_MAX_BLOCK_LEN   496
+#elif SF_UPLOAD_ENCODING == SF_UPLOAD_BASE64 || SF_UPLOAD_ENCODING == SF_UPLOAD_BASE64URL
+/**
+ * How many bytes to store chunks of data in on the SPI flash.
+ * 
+ * 466 * 4/3 (base64 encoding compression rate) = 621 which is less than the 622
+ * bytes which is the maximum size of publish events.
+ */
+#define DATA_UPLOAD_MAX_BLOCK_LEN   466
+#endif
 
 /**
  * @brief Number of bytes to buffer for upload

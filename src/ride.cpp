@@ -12,6 +12,7 @@
 #include "utils.hpp"
 #include "vers.hpp"
 #include "scheduler.hpp"
+#include "flog.hpp"
 
 static void RIDE_setFileName(system_tick_t startTime);
 
@@ -139,7 +140,6 @@ STATES_e RideInitTask::run(void)
             pSystemDesc->pGPS->encode(GPS_getch());
         }
 
-        RIDE_setFileName(millis());
 
         if((pSystemDesc->pGPS->location.age() < GPS_AGE_VALID_MS) && (pSystemDesc->pGPS->location.age() >= 0))
         {
@@ -174,6 +174,7 @@ STATES_e RideInitTask::run(void)
         {
             // water not detected and timeout
             SleepTask::setBootBehavior(SleepTask::BOOT_BEHAVIOR_NORMAL);
+            FLOG_AddError(FLOG_RIDE_INIT_TIMEOUT, 0);
             return STATE_DEEP_SLEEP;
         }
         
@@ -184,6 +185,7 @@ STATES_e RideInitTask::run(void)
 
 void RideInitTask::exit(void)
 {
+    RIDE_setFileName(millis());
     this->ledStatus.setActive(false);
 }
 

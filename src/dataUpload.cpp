@@ -6,8 +6,9 @@
 #include "conio.hpp"
 #include "product.hpp"
 #include "base85.h"
+#include "base64.h"
 #include "sleepTask.hpp"
-
+#include "flog.hpp"
 
 void DataUpload::init(void)
 {
@@ -25,7 +26,7 @@ STATES_e DataUpload::run(void)
     char dataPublishBuffer[DATA_UPLOAD_MAX_UPLOAD_LEN];
     char publishName[DU_PUBLISH_ID_NAME_LEN + 1];
     int nBytesToEncode;
-    int nBytesToSend;
+    size_t nBytesToSend;
     system_tick_t lastSendTime = 0;
     system_tick_t startConnectTime = 0;
     uint8_t uploadAttempts;
@@ -41,6 +42,7 @@ STATES_e DataUpload::run(void)
     pSystemDesc->pNvram->get(NVRAM::NO_UPLOAD_FLAG, no_upload_flag);
     if (no_upload_flag) {
         SF_OSAL_printf("no_upload mode set: entering sleep state\n");
+        FLOG_AddError(FLOG_UPLOAD_NO_UPLOAD, no_upload_flag);
         return STATE_CHARGE;
         //this can go to state_charge if we want to not save battery...
     }
@@ -53,11 +55,13 @@ STATES_e DataUpload::run(void)
         if(pSystemDesc->pBattery->getVCell() < SF_BATTERY_UPLOAD_VOLTAGE)
         {
             SF_OSAL_printf("Battery low\n");
+            FLOG_AddError(FLOG_UPL_BATT_LOW, (uint16_t) (pSystemDesc->pBattery->getVCell() * 1000));
             return STATE_DEEP_SLEEP;
         }
 
 
         // Do we have something to publish to begin with?  If not, save power
+        FLOG_AddError(FLOG_UPL_FOLDER_COUNT, pSystemDesc->pRecorder->getNumFiles());
         if(!pSystemDesc->pRecorder->hasData())
         {
             SF_OSAL_printf("No data to transmit\n");
@@ -86,6 +90,7 @@ STATES_e DataUpload::run(void)
         if(!Particle.connected())
         {
             SF_OSAL_printf("Fail to connect\n");
+            FLOG_AddError(FLOG_UPL_CONNECT_FAIL, 0);
             if(SleepTask::getBootBehavior() != SleepTask::BOOT_BEHAVIOR_UPLOAD_REATTEMPT)
             {
                 SleepTask::setBootBehavior(SleepTask::BOOT_BEHAVIOR_UPLOAD_REATTEMPT);
@@ -139,8 +144,15 @@ STATES_e DataUpload::run(void)
         SF_OSAL_printf("Got %d bytes to encode\n", nBytesToEncode);
 
         memset(dataPublishBuffer, 0, DATA_UPLOAD_MAX_UPLOAD_LEN);
+        nBytesToSend = DATA_UPLOAD_MAX_UPLOAD_LEN;
+        #if SF_UPLOAD_ENCODING == SF_UPLOAD_BASE85
         nBytesToSend = (bintob85(dataPublishBuffer, dataEncodeBuffer, nBytesToEncode) - dataPublishBuffer);
-        SF_OSAL_printf("Got %d bytes to upload\n", nBytesToSend);
+        #elif SF_UPLOAD_ENCODING == SF_UPLOAD_BASE64
+        b64_encode(dataEncodeBuffer, nBytesToEncode, dataPublishBuffer, &nBytesToSend);
+        #elif SF_UPLOAD_ENCODING == SF_UPLOAD_BASE64URL
+        urlsafe_b64_encode(dataEncodeBuffer, nBytesToEncode, dataPublishBuffer, &nBytesToSend);
+        #endif
+        SF_OSAL_printf("Got %u bytes to upload\n", nBytesToSend);
 
         if(!Particle.connected())
         {
