@@ -18,4 +18,4 @@ jobs:
         PLATFORM_ID: 6
         VERSION: 0.4.5
       run: |
-        docker run --rm -v $PROJECT_DIR:/input -v $PROJECT_DIR:/output -e PLATFORM_ID=$PLATFORM_ID particle/buildpack-particle-firmware:$VERSION
+        docker run --rm -v $PROJECT_DIR:/input -v $PROJECT_DIR:/output -e PLATFORM_ID=electron particle/buildpack-particle-firmware:$VERSION
