@@ -1,0 +1,21 @@
+name: "Particle Build"
+
+on: 
+  push:
+    tags:
+      - v*
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v3
+    - name: Set up Particle
+      uses: docker://particle/buildpack-particle-firmware:3.0.0-electron
+    - name: Set up Build
+      env:
+        PROJECT_DIR: $GITHUB_WORKSPACE
+        PLATFORM_ID: 6
+        VERSION: 0.4.5
+      run: |
+        docker run --rm -v $PROJECT_DIR:/input -v $PROJECT_DIR:/output -e PLATFORM_ID=$PLATFORM_ID particle/buildpack-particle-firmware:$VERSION
