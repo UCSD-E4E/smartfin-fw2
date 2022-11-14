@@ -2,8 +2,8 @@ name: "Particle Build"
 
 on: 
   push:
-    tags:
-      - v*
+    branches: 
+      - master
 
 jobs:
   build:
