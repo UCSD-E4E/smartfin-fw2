@@ -10,12 +10,8 @@ jobs:
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v3
-    - name: Set up Particle
-      uses: docker://particle/buildpack-particle-firmware:3.0.0-electron
-    - name: Set up Build
-      env:
-        PROJECT_DIR: $GITHUB_WORKSPACE
-        PLATFORM_ID: 6
-        VERSION: 0.4.5
-      run: |
-        docker run --rm -v $PROJECT_DIR:/input -v $PROJECT_DIR:/output -e PLATFORM_ID=electron particle/buildpack-particle-firmware:$VERSION
+    - name: Build
+      uses: addnab/docker-run-action@v3
+      with:
+        image: particle/buildpack-particle-firmware:3.0.0-electron
+        options: -v $GITHUB_WORKSPACE:/input -v $GITHUB_WORKSPACE:/output -e PLATFORM_ID=10 particle/buildpack-particle-firmware:3.0.0
