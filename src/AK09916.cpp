@@ -2,6 +2,7 @@
 #include "product.hpp"
 
 #include "flog.hpp"
+#include "system.hpp"
 
 //
 // Register addresses
@@ -85,10 +86,13 @@ bool AK09916::open(void)
 
     // Set power down mode
     write_register(AK09916_CNTL2, AK09916_CNTL2_PWRDWN_MODE);
+    SF_OSAL_printf("CNTL 2 pwr dwn %x", AK09916_CNTL2);
+
     delay(50);
 
     // Set to self test mode
     write_register(AK09916_CNTL2, AK09916_CNTL2_SELFTEST_MODE);
+    SF_OSAL_printf("CNTL 2 self test %x", AK09916_CNTL2);
 
     // Wait no more than MEASUREMENT_TIMEOUT_MS for data ready
     system_tick_t start_ms = millis();
@@ -97,6 +101,7 @@ bool AK09916::open(void)
         // Check if data ready
         uint8_t reg;
         read_register(AK09916_ST1, sizeof(reg), &reg);
+        SF_OSAL_printf("ST1 Reg %x", reg);
         if ((reg & AK09916_ST1_DRDY) == AK09916_ST1_DRDY)
         {
             break;
