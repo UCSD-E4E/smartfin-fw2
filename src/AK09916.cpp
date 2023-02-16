@@ -81,18 +81,36 @@ bool AK09916::open(void)
     }
 
     // Soft reset
+    
+    uint8_t cntl3;
+    read_register(AK09916_CNTL3, sizeof(cntl3), &cntl3);
+    SF_OSAL_printf("CNTL 3 before soft reset %x", cntl3);
     write_register(AK09916_CNTL3, AK09916_CNTL3_SRST);
     delay(50);
-
+    read_register(AK09916_CNTL3, sizeof(cntl3), &cntl3);
+    SF_OSAL_printf("CNTL 3 after soft reset %x", cntl3);
+    
+    /*
     // Set power down mode
+    uint8_t cntl2;
+    read_register(AK09916_CNTL2, sizeof(cntl2), &cntl2);
+    SF_OSAL_printf("CNTL 2 before pwr dwn %x", cntl2);
     write_register(AK09916_CNTL2, AK09916_CNTL2_PWRDWN_MODE);
-    SF_OSAL_printf("CNTL 2 pwr dwn %x", AK09916_CNTL2);
-
+    delay(50);
+    read_register(AK09916_CNTL2, sizeof(cntl2), &cntl2);
+    SF_OSAL_printf("CNTL 2 after pwr dwn %x", cntl2);
+    */
+    write_register(AK09916_CNTL2, AK09916_CNTL2_PWRDWN_MODE);
     delay(50);
 
     // Set to self test mode
+    uint8_t cntl2;
+    read_register(AK09916_CNTL2, sizeof(cntl2), &cntl2);
+    SF_OSAL_printf("CNTL 2 before self test %x", cntl2);
     write_register(AK09916_CNTL2, AK09916_CNTL2_SELFTEST_MODE);
-    SF_OSAL_printf("CNTL 2 self test %x", AK09916_CNTL2);
+    delay(50);
+    read_register(AK09916_CNTL2, sizeof(cntl2), &cntl2);
+    SF_OSAL_printf("CNTL 2 after self test %x", cntl2);
 
     // Wait no more than MEASUREMENT_TIMEOUT_MS for data ready
     system_tick_t start_ms = millis();
@@ -101,7 +119,7 @@ bool AK09916::open(void)
         // Check if data ready
         uint8_t reg;
         read_register(AK09916_ST1, sizeof(reg), &reg);
-        SF_OSAL_printf("ST1 Reg %x", reg);
+        //SF_OSAL_printf("ST1 Reg %x", reg);
         if ((reg & AK09916_ST1_DRDY) == AK09916_ST1_DRDY)
         {
             break;
@@ -164,9 +182,35 @@ bool AK09916::read(uint8_t* data)
     uint8_t reg;
     uint8_t reg1;
 
+    /*
+    uint8_t reg2;
+    uint8_t reg3;
+    uint8_t reg4;
+    uint8_t reg5;
+    uint8_t reg6;
+    uint8_t reg7;
+    uint8_t reg8;
+    uint8_t reg9;
+    uint8_t reg10;
+    read_register(AK09916_ST1, sizeof(uint8_t), &reg2);
+    read_register(AK09916_CNTL2, sizeof(uint8_t), &reg3);
+    read_register(AK09916_CNTL3, sizeof(uint8_t), &reg4);
+    read_register(AK09916_CNTL2, sizeof(uint8_t), &reg5);
+    read_register(AK09916_CNTL2, sizeof(uint8_t), &reg6);
+    read_register(AK09916_CNTL2, sizeof(uint8_t), &reg7);
+    read_register(AK09916_CNTL2, sizeof(uint8_t), &reg8);
+    read_register(AK09916_CNTL2, sizeof(uint8_t), &reg9);
+    */
+
+
     // Set to single measurement mode
-    write_register(AK09916_CNTL2, AK09916_CNTL2_SINGLE_MODE);
     read_register(AK09916_CNTL2, sizeof(uint8_t), &reg);
+    SF_OSAL_printf("CNTL 2 before single meas %x", reg);
+    write_register(AK09916_CNTL2, AK09916_CNTL2_SINGLE_MODE);
+    delay(50);
+    read_register(AK09916_CNTL2, sizeof(uint8_t), &reg);
+    SF_OSAL_printf("CNTL 2 after single meas %x", reg);
+    
     if(AK09916_CNTL2_SINGLE_MODE != reg)
     {
         FLOG_AddError(FLOG_MAG_MODE_FAIL, reg);
