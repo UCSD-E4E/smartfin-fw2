@@ -34,8 +34,7 @@
 			"numeric": "cpp",
 			"thread": "cpp",
 			"utility": "cpp"
-		},
-		"cortex-debug.openocdPath": "${command:particle.getDebuggerOpenocdPath}"
+		}
 	},
 	"extensions": {
 		"recommendations": [
