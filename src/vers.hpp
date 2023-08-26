@@ -5,6 +5,10 @@
  * 
  * DATE     WHO DESCRIPTION
  * ----------------------------------------------------------------------------
+ * 11/06/22 NH  v2.0.0.12
+ *              - Fix for #56 - Adding default support for base64 upload
+ *              - Adding increased fault logging
+ *              - Fix for #47 - reduced frequency of RIDE_setFileName
  * 08/04/22 NH  v2.0.0.11
  *              - Initial fix for #19 - Fixing magnetometer timeout
  *              - Fix for #40 - Adding Battery State CLI command
@@ -37,7 +41,7 @@
 
 #define FW_MAJOR_VERSION    2
 #define FW_MINOR_VERSION    0
-#define FW_BUILD_NUM        11
+#define FW_BUILD_NUM        12
 #define FW_BRANCH           ""
 
 #if PRODUCT_VERSION_USE_HEX == 1

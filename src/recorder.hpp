@@ -5,6 +5,7 @@
 #include <stddef.h>
 #include "deploy.hpp"
 #include "conio.hpp"
+#include "product.hpp"
 
 /**
  * @brief Maximum Session Name Length
@@ -13,7 +14,11 @@
 #define REC_SESSION_NAME_MAX_LEN 31
 
 #define REC_MEMORY_BUFFER_SIZE  512
+#if SF_UPLOAD_ENCODING == SF_UPLOAD_BASE85
 #define REC_MAX_PACKET_SIZE  496
+#elif SF_UPLOAD_ENCODING == SF_UPLOAD_BASE64 || SF_UPLOAD_ENCODING == SF_UPLOAD_BASE64URL
+#define REC_MAX_PACKET_SIZE  466
+#endif
 
 class Recorder
 {
@@ -25,6 +30,7 @@ class Recorder
     void incrementPacketNumber(void);
     int popLastPacket(size_t len);
     void setSessionName(const char* const);
+    int getNumFiles(void);
 
     int openSession(const char* const depName);
     int closeSession(void);

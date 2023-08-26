@@ -164,3 +164,8 @@ void* b85tobin( void* dest, char const* src ) {
         dest = ultobe( dest, value );
     }
 }
+
+const char* _b85_getcharset(void)
+{
+    return bintodigit;
+}

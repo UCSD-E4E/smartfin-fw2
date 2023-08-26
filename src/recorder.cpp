@@ -5,6 +5,7 @@
 #include "conio.hpp"
 
 #define REC_DEBUG
+static int REC_getNumFiles(void);
 
 /**
  * @brief Initializes the Recorder to an idle state
@@ -42,6 +43,10 @@ int Recorder::hasData(void)
     return 0;
 }
 
+int Recorder::getNumFiles(void)
+{
+    return REC_getNumFiles();
+}
 #define REC_DIR_TREE_SIZE 16
 
 typedef struct REC_dirTree_

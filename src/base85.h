@@ -54,6 +54,8 @@ static inline void* b85decode( void* p ) {
     return b85tobin( p, (char*)p );
 }
 
+const char* _b85_getcharset(void);
+
 /** @ } */
 
 #ifdef __cplusplus
