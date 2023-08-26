@@ -78,16 +78,16 @@ static int REC_getNumFiles(void)
     return i;
 }
 
-static int REC_treeGetNumFiles(void)
-{
-    int i = 0;
-    int numFiles = 0;
-    for (i = 0; i < REC_DIR_TREE_SIZE; i++)
-    {
-        numFiles += (REC_dirTree[i].initialized != 0);
-    }
-    return numFiles;
-}
+// static int REC_treeGetNumFiles(void)
+// {
+//     int i = 0;
+//     int numFiles = 0;
+//     for (i = 0; i < REC_DIR_TREE_SIZE; i++)
+//     {
+//         numFiles += (REC_dirTree[i].initialized != 0);
+//     }
+//     return numFiles;
+// }
 
 static int REC_initializeTree(void)
 {
@@ -228,9 +228,9 @@ int Recorder::getLastPacket(void *pBuffer, size_t bufferLen, char *pName, size_t
  */
 int Recorder::popLastPacket(size_t len)
 {
-    spiffs_DIR dir;
-    spiffs_dirent dirEntry;
-    int i = 0;
+    // spiffs_DIR dir;
+    // spiffs_dirent dirEntry;
+    // int i = 0;
     Deployment &session = Deployment::getInstance();
     int newLength;
 

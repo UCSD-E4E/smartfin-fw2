@@ -49,7 +49,7 @@ extern "C"
 
     int putch(int ch)
     {
-        char outputBuf[2] = {(char)ch, 0};
+        // char outputBuf[2] = {(char)ch, 0};
         // Serial.print(outputBuf);
         Serial.write((char) ch);
         return ch;

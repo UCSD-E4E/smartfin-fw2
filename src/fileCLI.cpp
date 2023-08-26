@@ -165,7 +165,6 @@ void FileCLI::dumpBase85(void)
     size_t encodedLen = 0;
     size_t nPackets = 0;
     size_t totalEncodedLen = 0;
-    int retval;
 
     binFile = pSystemDesc->pFileSystem->openFile((char*) this->dirEnt.name, SPIFFS_O_RDONLY);
     binFile.lseek(0, SPIFFS_SEEK_SET);
