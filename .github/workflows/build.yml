@@ -18,7 +18,7 @@ jobs:
       - name: Upload artifact
         uses: actions/upload-artifact@v3
         with:
-            name: firmware-artifact
-            path: |
-                ${{ steps.compile.outputs.firmware-path }}
-                ${{ steps.compile.outputs.target-path }}
+          name: firmware-artifact
+          path: |
+              ${{ steps.compile.outputs.firmware-path }}
+              ${{ steps.compile.outputs.target-path }}
