@@ -859,7 +859,6 @@ static void CLI_self_identify(void) {
 
 static int CLI_testUpload(void)
 {
-    uint8_t dataEncodeBuffer[DATA_UPLOAD_MAX_UPLOAD_LEN];
     const char* msg = "bTTe<cys^&00000000000000000000000000000kGx*vxLYFcNFG@Mk<3QPuv$VjC@S2JaD_-%j$@Lj*Qbh;Z2p^yWEAVE7D@e|x;fl4<SD=bGwH7L}%T44z=@DegL;C$6J=X2XRU2;&b&o9NfuLLw19xxAlD;8Qzt&bNdIMm$R@u40#N5@I&r08JT0c4gO~IkXB_bH50?EQC&ihlt;UuD0qF~W(h8GkLYmSQRdUW>-vuxo`u*T${!&V1W=iCOQWxC)%Rgv<4Bv_R(!G;)nm$lkA`avYI1PqHAI?`K6Qq3Wn{{Ppr9CJOaSB^1DVM-&|tT63pDPsTEmn_K02Gma$GsCg+T???S3-Ac&-n$F?l>UNJeZJ4>&KbM!`S!1xcF9lpr|=^C^$Zr#73hz2=5*E|#&PAq<#>E23DOXn1@yZTwdaD*7I2z(SP{zQqN!g&35DQaLygDY`U|&Gy^W1MhxIPg0syiYL*Q(6`}6IHPK-;~(W+kE0oPp!0kB0wqphkWf+uUC!+kN9zR!feZE(@fBHyE`M~@&yptzmeUV&FgJ_g^39+X+TwA3n2$~|}Oov1A4aXNe&xU\%2FBMd1rV4y{^`D+;+4xh!;CG*T~nVVOtA|F6h";
     char* publishName = "Sfin-5d0036001750483553353920-test_msg";
 
